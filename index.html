@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Audio Player</title>
+
+<!-- <link rel="manifest" href="manifest.json"> -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+<style>
+  /*button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }*/
+</style>
+
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-sm mx-auto p-2">
+    <input type="file" id="folderPicker" webkitdirectory multiple class="mb-4" />
+    <img id="cover" src="" alt="Cover" class="w-full rounded-2xl shadow mb-4 hidden">
+    <audio id="audio" preload="metadata"></audio>
+
+    <div class="flex items-center justify-center mb-2 text-sm">
+      <button id="trackTitle" class="text-blue-600 underline"></button>
+    </div>
+
+    <div class="flex items-center justify-center mb-2 text-sm">
+      <span id="currentTime">0:00</span> | <span id="remainingTime">0:00</span>
+      <!-- <span id="currentTime">0:00</span> | <span id="totalTime">0:00</span> -->
+    </div>
+
+    <div id="chapterList" class="fixed inset-0 bg-white z-50 hidden overflow-auto">
+      <div class="p-4">
+        <h2 class="text-lg font-semibold mb-4">Select Chapter</h2>
+        <ul id="chapterListItems" class="divide-y divide-gray-200"></ul>
+        <button onclick="toggleChapterList(true)" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Close</button>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center space-x-2 flex-nowrap">
+      <button onclick="prevTrack()" class="p-2 w-10 bg-gray-200 rounded">&lt;</button>
+      <button onclick="skipTime(-60)" class="p-2 bg-gray-200 rounded">-1m</button>
+      <button onclick="skipTime(-10)" class="p-2 bg-gray-200 rounded">-10s</button>
+      <button onclick="togglePlay()" id="playPause" class="p-2 w-16 bg-blue-500 text-white rounded">play</button>
+      <button onclick="skipTime(10)" class="p-2 bg-gray-200 rounded">+10s</button>
+      <button onclick="skipTime(60)" class="p-2 bg-gray-200 rounded">+1m</button>
+      <button onclick="nextTrack()" class="p-2 w-10 bg-gray-200 rounded">></button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

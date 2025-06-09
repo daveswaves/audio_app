@@ -1,0 +1,52 @@
+|========================================================================
+| AudioBook App
+|========================================================================
+
+Views
+   * Home/Library View: Show recent files
+   * Player View: Audio player interface + controls
+   * Chapters View: Navigate chapter timestamps
+
+Components
+   e picker or drag-and-drop zone
+   io player with custom controls
+   kmark indicator and list
+   pter list modal/panel
+
+Core Functionalities
+--------------------
+1. Load & Play Local Files
+   * Use <input type="file" accept="audio/*" multiple />
+   * Store File objects temporarily (can’t store entire files in localStorage)
+   * Use URL.createObjectURL() to play them
+   * Store metadata (file name, duration) in IndexedDB/localStorage
+
+2. Recent Files List
+   * Save recently accessed filenames with their lastPlayed timestamps in localStorage
+   * Sort and display on Home screen
+
+3. Bookmark Current Position
+   * Track playback time via audio.currentTime
+   * Store positions keyed by file name or a generated hash
+   * Update periodically (e.g., every 5–10 seconds)
+   * Restore last position on file load
+
+4. Transport Controls
+   Implement buttons to skip:
+   ⏪ 2s / 10s backward: audio.currentTime -= x
+   ⏩ 2s / 10s forward: audio.currentTime += x
+
+5. Chapter List (Manual or File-based)
+   * Let user create/edit chapter markers per file (store in localStorage)
+   * OR parse embedded chapter metadata if present (M4A supports this, but limited browser support)
+   * Display chapter list UI
+   * On click: audio.currentTime = chapterTime
+
+@ @ @ @ @ @
+
+Optional Extras:
+   * Dark mode
+   * File renaming / custom display titles
+   * Playback speed control
+   * Export/import bookmarks/chapters JSON
+
