@@ -7,39 +7,39 @@ const playPauseBtn = document.getElementById("playPause");
 const trackTitle = document.getElementById("trackTitle");
 const currentTimeDisplay = document.getElementById("currentTime");
 const coverImage = document.getElementById("cover");
-const folderPicker = document.getElementById("folderPicker");
+// const folderPicker = document.getElementById("folderPicker");
 const chapterList = document.getElementById("chapterList");
 const chapterListItems = document.getElementById("chapterListItems");
 const totalTimeDisplay = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
 
-folderPicker.addEventListener("change", (e) => {
+const bookRootPicker = document.getElementById("bookRootPicker");
+const bookList = document.getElementById("bookList");
+const bookListItems = document.getElementById("bookListItems");
+let allFilesByFolder = {};
+
+// Setup service worker
+// setupServiceWorker();
+
+bookRootPicker.addEventListener("change", (e) => {
   const files = Array.from(e.target.files);
-  const audioFiles = files.filter(f => f.type.startsWith("audio/"));
-  const imageFile = files.find(f => f.type.startsWith("image/"));
+  allFilesByFolder = {};
 
-  if (!audioFiles.length) return;
+  files.forEach(file => {
+    const parts = file.webkitRelativePath.split("/");
+    const folder = parts[1]; // [0] = root ("AudioBook"), [1] = audiobook folder
+    if (!allFilesByFolder[folder]) allFilesByFolder[folder] = [];
+    allFilesByFolder[folder].push(file);
+  });
 
-  tracks = audioFiles.sort((a, b) => a.name.localeCompare(b.name)).map((file, i) => ({
-    title: file.name,
-    file: URL.createObjectURL(file)
-  }));
+  // Show book list
+  bookListItems.innerHTML = Object.keys(allFilesByFolder).map(folder =>
+    `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
+  ).join("");
 
-  chapterListItems.innerHTML = tracks.map((t, i) => `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleChapterList(true)">${t.title}</li>`).join("");
-
-  if (imageFile) {
-    coverImage.src = URL.createObjectURL(imageFile);
-    coverImage.classList.remove("hidden");
-  }
-
-  const folderName = files[0].webkitRelativePath.split("/")[0];
-  document.title = folderName;
-
-  loadTrack(0);
-
-  // Setup service worker
-	// setupServiceWorker();
+  toggleBookList(false);
 });
+
 
 function setupServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -52,6 +52,41 @@ function setupServiceWorker() {
           console.log('ServiceWorker registration failed: ', error);
         });
     });
+  }
+}
+
+function loadBook(folderName) {
+  const files = allFilesByFolder[folderName];
+  if (!files) return;
+
+  const audioFiles = files.filter(f => f.type.startsWith("audio/"));
+  const imageFile = files.find(f => f.type.startsWith("image/"));
+
+  tracks = audioFiles.sort((a, b) => a.name.localeCompare(b.name)).map((file, i) => ({
+    title: file.name,
+    file: URL.createObjectURL(file)
+  }));
+
+  chapterListItems.innerHTML = tracks.map((t, i) =>
+    `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleChapterList(true)">${t.title}</li>`
+  ).join("");
+
+  if (imageFile) {
+    coverImage.src = URL.createObjectURL(imageFile);
+    coverImage.classList.remove("hidden");
+  } else {
+    coverImage.classList.add("hidden");
+  }
+
+  document.title = folderName;
+  loadTrack(0);
+}
+
+function toggleBookList(forceHide = null) {
+  if (forceHide !== null) {
+    bookList.classList.toggle("hidden", forceHide);
+  } else {
+    bookList.classList.toggle("hidden");
   }
 }
 
@@ -131,10 +166,3 @@ audio.addEventListener("timeupdate", () => {
     // console.log(`Current: ${mins}:${secs}, Remaining: ${minsRem}:${secsRem}`);
   }
 });
-
-
-// audio.addEventListener("loadedmetadata", () => {
-//   const mins = Math.floor(audio.duration / 60);
-//   const secs = Math.floor(audio.duration % 60).toString().padStart(2, "0");
-//   remainingTimeDisplay.textContent = `${mins}:${secs}`;
-// });
