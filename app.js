@@ -3,43 +3,19 @@ let tracks = [];
 let currentTrack = 0;
 const audio = document.getElementById("audio");
 const playPauseBtn = document.getElementById("playPause");
-// const chapterSelector = document.getElementById("chapterSelector");
 const trackTitle = document.getElementById("trackTitle");
 const currentTimeDisplay = document.getElementById("currentTime");
 const coverImage = document.getElementById("cover");
-// const folderPicker = document.getElementById("folderPicker");
 const chapterList = document.getElementById("chapterList");
 const chapterListItems = document.getElementById("chapterListItems");
 const totalTimeDisplay = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
-
-const bookRootPicker = document.getElementById("bookRootPicker");
 const bookList = document.getElementById("bookList");
 const bookListItems = document.getElementById("bookListItems");
 let allFilesByFolder = {};
 
 // Setup service worker
 // setupServiceWorker();
-
-bookRootPicker.addEventListener("change", (e) => {
-  const files = Array.from(e.target.files);
-  allFilesByFolder = {};
-
-  files.forEach(file => {
-    const parts = file.webkitRelativePath.split("/");
-    const folder = parts[1]; // [0] = root ("AudioBook"), [1] = audiobook folder
-    if (!allFilesByFolder[folder]) allFilesByFolder[folder] = [];
-    allFilesByFolder[folder].push(file);
-  });
-
-  // Show book list
-  bookListItems.innerHTML = Object.keys(allFilesByFolder).map(folder =>
-    `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
-  ).join("");
-
-  toggleBookList(false);
-});
-
 
 function setupServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -55,6 +31,41 @@ function setupServiceWorker() {
   }
 }
 
+async function selectBookRoot() {
+  try {
+    const dirHandle = await window.showDirectoryPicker();
+    allFilesByFolder = {};
+
+    for await (const [bookName, bookHandle] of dirHandle.entries()) {
+      if (bookHandle.kind === "directory") {
+        allFilesByFolder[bookName] = [];
+
+        for await (const [fileName, fileHandle] of bookHandle.entries()) {
+          const file = await fileHandle.getFile();
+          allFilesByFolder[bookName].push(file);
+        }
+      }
+    }
+
+    // Populate book list
+    bookListItems.innerHTML = Object.keys(allFilesByFolder).map(folder =>
+      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
+    ).join("");
+
+    toggleBookList(false);
+  } catch (err) {
+    console.error("Directory access cancelled or failed", err);
+  }
+}
+
+function handleBookButtonClick() {
+  if (Object.keys(allFilesByFolder).length > 0) {
+    toggleBookList(false); // Show the list immediately
+  } else {
+    document.getElementById("bookRootTrigger").click(); // Trigger hidden button
+  }
+}
+
 function loadBook(folderName) {
   const files = allFilesByFolder[folderName];
   if (!files) return;
@@ -66,6 +77,21 @@ function loadBook(folderName) {
     title: file.name,
     file: URL.createObjectURL(file)
   }));
+
+  // Calulate total duration of audio book
+  Promise.all(
+    tracks.map(t => {
+      return new Promise(resolve => {
+        const audioEl = document.createElement("audio");
+        audioEl.preload = "metadata";
+        audioEl.src = t.file;
+        audioEl.onloadedmetadata = () => resolve(audioEl.duration || 0);
+      });
+    })
+  ).then(durations => {
+    const totalDuration = durations.reduce((sum, d) => sum + d, 0);
+    document.getElementById("bookTotalTime").textContent = hoursMinsSecs(totalDuration);
+  });
 
   chapterListItems.innerHTML = tracks.map((t, i) =>
     `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleChapterList(true)">${t.title}</li>`
@@ -133,15 +159,31 @@ function toggleChapterList(forceHide = null) {
   }
 }
 
+function hoursMinsSecs(time) {
+  let hours = Math.floor(time / 3600);
+  let mins = Math.floor((time % 3600) / 60).toString().padStart(2, "0");
+  // let mins = Math.floor(time / 60);
+  let secs = Math.floor(time % 60).toString().padStart(2, "0");
+  return hours ? `${hours}:${mins}:${secs}` : `${mins}:${secs}`;
+}
+
+let lastSecond = -1;
 
 audio.addEventListener("loadedmetadata", () => {
-  let mins = Math.floor(audio.duration / 60);
-  let secs = Math.floor(audio.duration % 60).toString().padStart(2, "0");
-  remainingTimeDisplay.textContent = `${mins}:${secs}`;
+  remainingTimeDisplay.textContent = hoursMinsSecs(audio.duration);
   currentTimeDisplay.textContent = '0:00';
 });
 
-let lastSecond = -1;
+// Auto-play next track
+audio.addEventListener("ended", () => {
+  if (currentTrack < tracks.length - 1) {
+    loadTrack(currentTrack + 1);
+    setTimeout(() => {
+      audio.play();
+      playPauseBtn.textContent = "pause";
+    }, 500);
+  }
+});
 
 audio.addEventListener("timeupdate", () => {
   const currentRounded = Math.floor(audio.currentTime);
@@ -152,15 +194,9 @@ audio.addEventListener("timeupdate", () => {
   
   const remaining = Math.max(Math.floor(audio.duration) - currentRounded, 0);
   
-  const mins = Math.floor(currentRounded / 60);
-  const secs = Math.floor(currentRounded % 60).toString().padStart(2, "0");
-  
   if (!isNaN(remaining)) {
-    const minsRem = Math.floor(remaining / 60);
-    const secsRem = Math.floor(remaining % 60).toString().padStart(2, "0");
-    
-    currentTimeDisplay.textContent = `${mins}:${secs}`;
-    remainingTimeDisplay.textContent = `${minsRem}:${secsRem}`;
+    currentTimeDisplay.textContent = hoursMinsSecs(currentRounded);
+    remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
   
     // DEBUG
     // console.log(`Current: ${mins}:${secs}, Remaining: ${minsRem}:${secsRem}`);

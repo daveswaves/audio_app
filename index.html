@@ -18,11 +18,13 @@
 </head>
 <body class="bg-gray-100 text-gray-900">
   <div class="max-w-sm mx-auto p-2">
-    <button onclick="bookRootPicker.click()" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Books</button>
-    <input type="file" id="bookRootPicker" webkitdirectory multiple hidden>
-    <!-- <button onclick="showBookList()" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Books</button> -->
-    <!-- <input type="file" id="folderPicker" webkitdirectory multiple class="mb-4" /> -->
-    <img id="cover" src="" alt="Cover" class="w-full rounded-2xl shadow mb-4 hidden">
+    <button onclick="handleBookButtonClick()" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Books</button>
+    
+    <!-- <input type="file" id="bookRootPicker" webkitdirectory multiple hidden> -->
+    <button onclick="selectBookRoot()" id="bookRootTrigger" class="hidden mb-4 px-4 py-2 bg-blue-500 text-white rounded">Select</button>
+    
+    <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w-full rounded-2xl shadow mb-4 hidden">
+    
     <audio id="audio" preload="metadata"></audio>
 
     <div class="flex items-center justify-center mb-2 text-sm">
@@ -30,14 +32,12 @@
     </div>
 
     <div class="flex items-center justify-center mb-2 text-sm">
-      <span id="currentTime">0:00</span> | <span id="remainingTime">0:00</span>
-      <!-- <span id="currentTime">0:00</span> | <span id="totalTime">0:00</span> -->
+      <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
     </div>
 
     <div id="bookList" class="fixed inset-0 bg-white z-50 hidden overflow-auto">
       <div class="p-4">
         <h2 class="text-lg font-semibold mb-4">Select Audio Book</h2>
-        <!-- <input type="file" id="bookFolderPicker" webkitdirectory multiple class="mb-4 block" /> -->
         <ul id="bookListItems" class="divide-y divide-gray-200"></ul>
         <button onclick="toggleBookList(true)" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Close</button>
       </div>
