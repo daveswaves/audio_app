@@ -12,7 +12,11 @@ const totalTimeDisplay = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
 const bookList = document.getElementById("bookList");
 const bookListItems = document.getElementById("bookListItems");
+const bookListItemsRecent = document.getElementById("bookListItemsRecent");
 let allFilesByFolder = {};
+let recentBooks = [];
+
+loadRecentBooks();
 
 // Setup service worker
 // setupServiceWorker();
@@ -40,13 +44,18 @@ async function selectBookRoot() {
       if (bookHandle.kind === "directory") {
         allFilesByFolder[bookName] = [];
 
-        for await (const [fileName, fileHandle] of bookHandle.entries()) {
-          const file = await fileHandle.getFile();
+        // for await (const [fileName, fileHandle] of bookHandle.entries()) {
+        //   const file = await fileHandle.getFile();
+        //   allFilesByFolder[bookName].push(file);
+        // }
+        for await (const fileEntry of bookHandle.values()) {
+          // console.log(fileEntry);
+          const file = await fileEntry.getFile();
           allFilesByFolder[bookName].push(file);
         }
       }
     }
-
+    
     // Populate book list
     bookListItems.innerHTML = Object.keys(allFilesByFolder).map(folder =>
       `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
@@ -70,6 +79,14 @@ function loadBook(folderName) {
   const files = allFilesByFolder[folderName];
   if (!files) return;
 
+  // Add to recentBooks list
+  if (!recentBooks.includes(folderName)) {
+    recentBooks.unshift(folderName);
+    if (recentBooks.length > 6) recentBooks.pop(); // Keep only last 6
+
+    saveRecentBooks();
+  }
+
   const audioFiles = files.filter(f => f.type.startsWith("audio/"));
   const imageFile = files.find(f => f.type.startsWith("image/"));
 
@@ -77,6 +94,9 @@ function loadBook(folderName) {
     title: file.name,
     file: URL.createObjectURL(file)
   }));
+
+  document.getElementById("timeInf").classList.remove("hidden");
+  document.getElementById("transCon").classList.remove("hidden");
 
   // Calulate total duration of audio book
   Promise.all(
@@ -108,11 +128,42 @@ function loadBook(folderName) {
   loadTrack(0);
 }
 
+function handleRecentButtonClick() {
+  if (recentBooks.length === 0) {
+    bookListItemsRecent.innerHTML = "<p>Empty</p>";
+  } else {
+    bookListItemsRecent.innerHTML = recentBooks.map(folder =>
+      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookListRecent(true)">${folder}</li>`
+    ).join("");
+  }
+
+  toggleBookListRecent(false); // Show the recent book list
+}
+
+// Save recent books to localStorage
+function saveRecentBooks() {
+  localStorage.setItem("recentBooks", JSON.stringify(recentBooks));
+}
+
+// Load recent books from localStorage
+function loadRecentBooks() {
+  const stored = localStorage.getItem("recentBooks");
+  if (stored) recentBooks = JSON.parse(stored);
+}
+
 function toggleBookList(forceHide = null) {
   if (forceHide !== null) {
     bookList.classList.toggle("hidden", forceHide);
   } else {
     bookList.classList.toggle("hidden");
+  }
+}
+
+function toggleBookListRecent(forceHide = null) {
+  if (forceHide !== null) {
+    bookListRecent.classList.toggle("hidden", forceHide);
+  } else {
+    bookListRecent.classList.toggle("hidden");
   }
 }
 

@@ -9,6 +9,10 @@
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
 <style>
+  .btn-border {
+    border: solid 1px #888;
+  }
+  
   /*button:focus {
     outline: none !important;
     box-shadow: none !important;
@@ -18,10 +22,13 @@
 </head>
 <body class="bg-gray-100 text-gray-900">
   <div class="max-w-sm mx-auto p-2">
-    <button onclick="handleBookButtonClick()" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Books</button>
+    <button onclick="handleBookButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Books</button>
     
-    <!-- <input type="file" id="bookRootPicker" webkitdirectory multiple hidden> -->
-    <button onclick="selectBookRoot()" id="bookRootTrigger" class="hidden mb-4 px-4 py-2 bg-blue-500 text-white rounded">Select</button>
+    <button onclick="handleRecentButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Recent</button>
+    
+    <button onclick="selectBookRoot()" id="bookRootTrigger" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hidden">Select</button>
+    
+    <button onclick="bookmark()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Bookmark</button>
     
     <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w-full rounded-2xl shadow mb-4 hidden">
     
@@ -31,11 +38,11 @@
       <button id="trackTitle" class="text-blue-600 underline"></button>
     </div>
 
-    <div class="flex items-center justify-center mb-2 text-sm">
+    <div id="timeInf" class="flex items-center justify-center mb-2 text-sm hidden">
       <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
     </div>
 
-    <div id="bookList" class="fixed inset-0 bg-white z-50 hidden overflow-auto">
+    <div id="bookList" class="fixed inset-0 bg-white z-50 overflow-auto hidden">
       <div class="p-4">
         <h2 class="text-lg font-semibold mb-4">Select Audio Book</h2>
         <ul id="bookListItems" class="divide-y divide-gray-200"></ul>
@@ -43,7 +50,15 @@
       </div>
     </div>
 
-    <div id="chapterList" class="fixed inset-0 bg-white z-50 hidden overflow-auto">
+    <div id="bookListRecent" class="fixed inset-0 bg-white z-50 overflow-auto hidden">
+      <div class="p-4">
+        <h2 class="text-lg font-semibold mb-4">Recent Audio Books</h2>
+        <ul id="bookListItemsRecent" class="divide-y divide-gray-200"></ul>
+        <button onclick="toggleBookListRecent(true)" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Close</button>
+      </div>
+    </div>
+
+    <div id="chapterList" class="fixed inset-0 bg-white z-50 overflow-auto hidden">
       <div class="p-4">
         <h2 class="text-lg font-semibold mb-4">Select Chapter</h2>
         <ul id="chapterListItems" class="divide-y divide-gray-200"></ul>
@@ -51,14 +66,14 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-center space-x-2 flex-nowrap">
-      <button onclick="prevTrack()" class="p-2 w-10 bg-gray-200 rounded">&lt;</button>
-      <button onclick="skipTime(-60)" class="p-2 bg-gray-200 rounded">-1m</button>
-      <button onclick="skipTime(-10)" class="p-2 bg-gray-200 rounded">-10s</button>
+    <div id="transCon" class="flex items-center justify-center space-x-2 flex-nowrap hidden">
+      <button onclick="prevTrack()" class="p-2 w-10 bg-gray-200 rounded btn-border">&lt;</button>
+      <button onclick="skipTime(-60)" class="p-2 bg-gray-200 rounded btn-border">-1m</button>
+      <button onclick="skipTime(-10)" class="p-2 bg-gray-200 rounded btn-border">-10s</button>
       <button onclick="togglePlay()" id="playPause" class="p-2 w-16 bg-blue-500 text-white rounded">play</button>
-      <button onclick="skipTime(10)" class="p-2 bg-gray-200 rounded">+10s</button>
-      <button onclick="skipTime(60)" class="p-2 bg-gray-200 rounded">+1m</button>
-      <button onclick="nextTrack()" class="p-2 w-10 bg-gray-200 rounded">></button>
+      <button onclick="skipTime(10)" class="p-2 bg-gray-200 rounded btn-border">+10s</button>
+      <button onclick="skipTime(60)" class="p-2 bg-gray-200 rounded btn-border">+1m</button>
+      <button onclick="nextTrack()" class="p-2 w-10 bg-gray-200 rounded btn-border">&gt;</button>
     </div>
   </div>
 
