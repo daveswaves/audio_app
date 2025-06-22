@@ -1,0 +1,22 @@
+{
+  "name": "Audio Book App",
+  "short_name": "AB-App",
+  "description": "Audio Book App",
+  "start_url": "/audiobook_app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#44296b",
+  "theme_color": "#44296b",
+  "icons": [
+    {
+      "src": "icons/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

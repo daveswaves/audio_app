@@ -12,17 +12,14 @@
   .btn-border {
     border: solid 1px #888;
   }
-  
-  /*button:focus {
-    outline: none !important;
-    box-shadow: none !important;
-  }*/
 </style>
 
 </head>
 <body class="bg-gray-100 text-gray-900">
   <div class="max-w-sm mx-auto p-2">
     <button onclick="handleBookButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Books</button>
+
+    <button onclick="refreshBooks()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Refresh</button>
     
     <button onclick="handleRecentButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Recent</button>
     
@@ -77,6 +74,7 @@
     </div>
   </div>
 
+  <!-- <script src="db.js"></script> -->
   <script src="app.js"></script>
 </body>
 </html>
