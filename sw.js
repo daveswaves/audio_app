@@ -1,5 +1,6 @@
 // sw.js
-const VERSION = '2025.06.01';
+const VERSION = 1;
+// const VERSION = '2025.06.01';
 const CACHE_NAME = `audio-book-app-v${VERSION}`;
 
 self.addEventListener('install', (e) => {

@@ -1,8 +1,8 @@
 {
-  "name": "Audio Book App",
+  "name": "Audio App",
   "short_name": "AB-App",
-  "description": "Audio Book App",
-  "start_url": "/audiobook_app/",
+  "description": "Audio App",
+  "start_url": "/audio_app/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#44296b",

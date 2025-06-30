@@ -15,15 +15,19 @@ const bookListItems = document.getElementById("bookListItems");
 const bookListItemsRecent = document.getElementById("bookListItemsRecent");
 // let allFilesByFolder = {};
 let recentBooks = [];
+let bookmarksByBook = {}; // bookmarks code
+let bookHandles = {};
+
 
 const DB_NAME = "audiobook-app";
 const DB_VERSION = 1;
 const STORE_NAME = "handles";
 
 loadRecentBooks();
+loadBookmarks(); // bookmarks code
 
 // Setup service worker
-// setupServiceWorker();
+setupServiceWorker();
 
 function setupServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -63,6 +67,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       console.log('loadBook: ', lastBook);//DEBUG
       toggleBookList(true); // loads last book on start
       loadBook(lastBook);
+      // loadBookmarks();
     }
   } else {
     console.warn("Permission to access directory was not granted.");
@@ -117,8 +122,6 @@ async function getStoredDirectoryHandle() {
   });
 }
 
-let bookHandles = {};
-
 async function readBooksFromDirectory(dirHandle) {
   bookHandles = {};
 
@@ -142,6 +145,9 @@ async function readBooksFromDirectory(dirHandle) {
 }
 
 async function loadBook(folderName) {
+  // bookmarks code
+  document.getElementById("bookListRecent").classList.add("hidden");
+  
   const folderHandle = bookHandles[folderName];
   if (!folderHandle) return;
 
@@ -240,8 +246,95 @@ async function restoreBookRoot() {
   }
 }
 
+// bookmarks code
+function addBookmark() {
+  const bookName = document.title;
+  const time = Math.floor(audio.currentTime);
+  const label = hoursMinsSecs(time);
 
+  if (!bookmarksByBook[bookName]) {
+    bookmarksByBook[bookName] = [];
+  }
 
+  bookmarksByBook[bookName].push({
+    trackIndex: currentTrack,
+    time,
+    label
+  });
+
+  saveBookmarks();
+}
+
+// bookmarks code
+function openBookmarksOverlay() {
+  document.getElementById("bookmarksOverlay").classList.remove("hidden");
+  const bookName = document.title;
+  const bookmarks = bookmarksByBook[bookName] || [];
+
+  const list = document.getElementById("bookmarksList");
+
+  list.innerHTML = "";
+
+  if (bookmarks.length === 0) {
+    list.innerHTML = `<li class="text-gray-500 italic">No bookmarks yet.</li>`;
+  } else {
+    bookmarks.forEach((b, i) => {
+      const li = document.createElement("li");
+      li.className = "flex items-center justify-between";
+      
+      const button = document.createElement("button");
+      button.textContent = b.label;
+      button.className = "text-blue-500 hover:underline";
+      button.addEventListener("click", () => {
+        seekToBookmark(b);
+        toggleBookmarksOverlay(true); // hide overlay after click
+      });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.innerHTML = "✕";
+      removeBtn.className = "text-red-500 ml-4 text-xl";
+      removeBtn.addEventListener("click", () => {
+        removeBookmark(bookName, i);
+      });
+
+      li.appendChild(button);
+      li.appendChild(removeBtn);
+      list.appendChild(li);
+    });
+  }
+
+  toggleBookmarksOverlay(false); // Show
+}
+// bookmarks code
+function toggleBookmarksOverlay(forceHide = null) {
+  const overlay = document.getElementById("bookmarksOverlay");
+  if (forceHide !== null) {
+    overlay.classList.toggle("hidden", forceHide);
+  } else {
+    overlay.classList.toggle("hidden");
+  }
+}
+
+// bookmarks code
+function seekToBookmark(bookmark) {
+  if (bookmark.trackIndex !== currentTrack) {
+    loadTrack(bookmark.trackIndex);
+  }
+  audio.currentTime = bookmark.time;
+  audio.play();
+  playPauseBtn.textContent = "pause";
+}
+
+// bookmarks code
+function saveBookmarks() {
+  localStorage.setItem("bookmarksByBook", JSON.stringify(bookmarksByBook));
+}
+
+// bookmarks code
+function loadBookmarks() {
+  const stored = localStorage.getItem("bookmarksByBook");
+  bookmarksByBook = stored ? JSON.parse(stored) : {};
+}
 
 
 function handleBookButtonClick() {
@@ -257,11 +350,32 @@ function handleRecentButtonClick() {
     bookListItemsRecent.innerHTML = "<p>Empty</p>";
   } else {
     bookListItemsRecent.innerHTML = recentBooks.map(folder =>
-      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookListRecent(true)">${folder}</li>`
+      `<li class="p-2 hover:bg-gray-100 flex justify-between items-center">
+        <span class="cursor-pointer" onclick="loadBook('${folder}'); toggleBookListRecent(true)">${folder}</span>
+        <button class="text-red-500 ml-2 mr-2 text-2xl" onclick="removeRecentBook('${folder}')">✕</button>
+      </li>`
     ).join("");
   }
 
   toggleBookListRecent(false); // Show the recent book list
+}
+
+function removeRecentBook(folderName) {
+  recentBooks = recentBooks.filter(name => name !== folderName);
+  saveRecentBooks();
+  handleRecentButtonClick(); // Re-render the list
+}
+
+function removeBookmark(bookName, index) {
+  if (!bookmarksByBook[bookName]) return;
+
+  bookmarksByBook[bookName].splice(index, 1);
+  if (bookmarksByBook[bookName].length === 0) {
+    delete bookmarksByBook[bookName]; // clean up empty list
+  }
+
+  saveBookmarks();
+  openBookmarksOverlay(); // refresh list
 }
 
 // Save recent books to localStorage

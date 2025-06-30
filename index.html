@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Audio Player</title>
 
-<!-- <link rel="manifest" href="manifest.json"> -->
+<link rel="manifest" href="manifest.json">
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
 <style>
@@ -17,16 +17,24 @@
 </head>
 <body class="bg-gray-100 text-gray-900">
   <div class="max-w-sm mx-auto p-2">
-    <button onclick="handleBookButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Books</button>
+    <div class="flex flex-wrap gap-1">
+      <button onclick="handleBookButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Books</button>
 
-    <button onclick="refreshBooks()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Refresh</button>
-    
-    <button onclick="handleRecentButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Recent</button>
-    
-    <button onclick="selectBookRoot()" id="bookRootTrigger" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hidden">Select</button>
-    
-    <button onclick="bookmark()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Bookmark</button>
-    
+      <button onclick="refreshBooks()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Refresh</button>
+      
+      <button onclick="handleRecentButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Recent</button>
+      
+      <button onclick="selectBookRoot()" id="bookRootTrigger" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hidden">Select</button>
+      
+      <button onclick="addBookmark()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="20" height="20">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+      </button>
+
+      <button onclick="openBookmarksOverlay()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Bookmarks</button>
+    </div>
+
     <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w-full rounded-2xl shadow mb-4 hidden">
     
     <audio id="audio" preload="metadata"></audio>
@@ -47,12 +55,22 @@
       </div>
     </div>
 
+    <!-- Recent Overlay Panel -->
     <div id="bookListRecent" class="fixed inset-0 bg-white z-50 overflow-auto hidden">
       <div class="p-4">
         <h2 class="text-lg font-semibold mb-4">Recent Audio Books</h2>
         <ul id="bookListItemsRecent" class="divide-y divide-gray-200"></ul>
         <button onclick="toggleBookListRecent(true)" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Close</button>
       </div>
+    </div>
+
+    <!-- Bookmarks Overlay Panel -->
+    <div id="bookmarksOverlay" class="hidden fixed top-0 left-0 w-full h-full bg-white z-50 p-4 overflow-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Bookmarks</h2>
+        <button onclick="toggleBookmarksOverlay(true)" class="text-red-600 text-lg">Close</button>
+      </div>
+      <ul id="bookmarksList" class="space-y-2"></ul>
     </div>
 
     <div id="chapterList" class="fixed inset-0 bg-white z-50 overflow-auto hidden">
