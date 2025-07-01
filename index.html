@@ -12,12 +12,16 @@
   .btn-border {
     border: solid 1px #888;
   }
+  .sq-btn {
+    width: 60px;
+    height: 40px;
+  }
 </style>
 
 </head>
 <body class="bg-gray-100 text-gray-900">
   <div class="max-w-sm mx-auto p-2">
-    <div class="flex flex-wrap gap-1">
+    <div style="display: flex; justify-content: space-between">
       <button onclick="handleBookButtonClick()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Books</button>
 
       <button onclick="refreshBooks()" class="mb-4 px-2 py-2 bg-blue-500 text-white rounded">Refresh</button>
@@ -81,14 +85,26 @@
       </div>
     </div>
 
-    <div id="transCon" class="flex items-center justify-center space-x-2 flex-nowrap hidden">
-      <button onclick="prevTrack()" class="p-2 w-10 bg-gray-200 rounded btn-border">&lt;</button>
-      <button onclick="skipTime(-60)" class="p-2 bg-gray-200 rounded btn-border">-1m</button>
-      <button onclick="skipTime(-10)" class="p-2 bg-gray-200 rounded btn-border">-10s</button>
-      <button onclick="togglePlay()" id="playPause" class="p-2 w-16 bg-blue-500 text-white rounded">play</button>
-      <button onclick="skipTime(10)" class="p-2 bg-gray-200 rounded btn-border">+10s</button>
-      <button onclick="skipTime(60)" class="p-2 bg-gray-200 rounded btn-border">+1m</button>
-      <button onclick="nextTrack()" class="p-2 w-10 bg-gray-200 rounded btn-border">&gt;</button>
+    <div id="transCon" class="hidden">
+      <div class="flex items-center justify-center space-x-2 flex-nowrap">
+        <button onclick="prevTrack()" class="sq-btn bg-blue-400 rounded ">&lt;</button>
+        <button onclick="skipTime(-60)" class="sq-btn bg-blue-400 rounded">-1m</button>
+        <button onclick="skipTime(-10)" class="sq-btn bg-blue-400 rounded">-10s</button>
+        <button onclick="skipTime(-5)" class="sq-btn bg-blue-400 rounded">-5s</button>
+        <button onclick="skipTime(-2)" class="sq-btn bg-blue-400 rounded">-2s</button>
+      </div>
+
+      <div class="flex items-center justify-center">
+        <button onclick="togglePlay()" id="playPause" style="width: 90%;" class="p-2 mt-2 mb-2 bg-blue-500 text-white text-3xl rounded">play</button>
+      </div>
+
+      <div class="flex items-center justify-center space-x-2 flex-nowrap">
+        <button onclick="skipTime(2)" class="sq-btn bg-blue-400 rounded">+2s</button>
+        <button onclick="skipTime(5)" class="sq-btn bg-blue-400 rounded">+5s</button>
+        <button onclick="skipTime(10)" class="sq-btn bg-blue-400 rounded">+10s</button>
+        <button onclick="skipTime(60)" class="sq-btn bg-blue-400 rounded">+1m</button>
+        <button onclick="prevTrack()" class="sq-btn bg-blue-400 rounded ">&gt;</button>
+      </div>
     </div>
   </div>
 
