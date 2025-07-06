@@ -13,29 +13,21 @@
 <body>
   <div class="max_w_sm mx_auto p_2 space">
     <div style="display: flex; justify-content: space-between;" class="px_1">
-      <button id="booksBtn" onclick="openBooksOverlay()" class="nav navActive">Books</button>
-      <!-- <button id="booksBtn" onclick="handleBookButtonClick()" class="nav navActive">Books</button> -->
+      <button onclick="handleBookButtonClick()" class="nav">Books</button>
 
-      <button onclick="refreshBooks()" class="nav navActive">Refresh</button>
+      <button onclick="refreshBooks()" class="nav">Refresh</button>
       
-      <button onclick="openRecentOverlay()" class="nav navActive">Recent</button>
-      <!-- <button onclick="handleRecentButtonClick()" class="nav">Recent</button> -->
+      <button onclick="handleRecentButtonClick()" class="nav">Recent</button>
       
-      <!-- <button onclick="selectBookRoot()" id="bookRootTrigger" class="nav mb_4 px_4 py_2 bg_blue_500 txt_white rounded hidden">Select</button> -->
+      <button onclick="selectBookRoot()" id="bookRootTrigger" class="nav mb_4 px_4 py_2 bg_blue_500 txt_white rounded hidden">Select</button>
       
-      <button onclick="addBookmark()" style="width: 12vw;" class="nav navActive">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="36" height="36">
-          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-        </svg>
-      </button>
-
-      <button onclick="openBookmarksOverlay()" class="nav navActive">
+      <button onclick="addBookmark()" style="line-height: 3.5;" class="nav">
         <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="20" height="20">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
-        View
       </button>
-      <!-- <button onclick="openBookmarksOverlay()" class="nav">Bookmarks</button> -->
+
+      <button onclick="openBookmarksOverlay()" class="nav">Bookmarks</button>
     </div>
 
     <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
@@ -50,23 +42,41 @@
       <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
     </div>
 
-    <!-- Overlay View -->
-    <div id="overlay" class="hidden">
-      <div class="flex justify_between items_center mb_4">
-        <h2 id="overlayTitle" class="text_xl"></h2>
-        <button onclick="toggleOverlay(true)" class="text_red_600 text_lg">Close</button>
-      </div>
-      <ul id="overlayList"></ul>
-    </div>
-
     <!-- Book List -->
-    <!-- <div id="bookList" class="fixed inset-0 bg_white z_50 overflow_auto hidden">
+    <div id="bookList" class="fixed inset-0 bg_white z_50 overflow_auto hidden">
       <div class="p_4">
-        <h2 class="text_lg font_semibold mb_4">Select Audio Book</h2>
+        <h2 class="text-lg font-semibold mb_4">Select Audio Book</h2>
         <ul id="bookListItems" class="divide-y divide-gray-200"></ul>
         <button onclick="toggleBookList(true)" class="mt-4 px_4 py_2 bg_blue_500 txt_white rounded">Close</button>
       </div>
-    </div> -->
+    </div>
+
+    <!-- Recent Overlay Panel -->
+    <div id="bookListRecent" class="fixed inset-0 bg_white z_50 overflow_auto hidden">
+      <div class="p_4">
+        <h2 class="text-lg font-semibold mb_4">Recent Audio Books</h2>
+        <ul id="bookListItemsRecent" class="divide-y divide-gray-200"></ul>
+        <button onclick="toggleBookListRecent(true)" class="mt-4 px_4 py_2 bg_blue_500 txt_white rounded">Close</button>
+      </div>
+    </div>
+
+    <!-- Bookmarks Overlay Panel -->
+    <div id="bookmarksOverlay" class="bookmarks_view hidden">
+      <div class="flex justify_between items_center mb_4">
+        <h2 class="text_xl font_bold">Bookmarks</h2>
+        <button onclick="toggleBookmarksOverlay(true)" class="text_red_600 text_lg">Close</button>
+      </div>
+      <ul id="bookmarksList"></ul>
+    </div>
+
+    <!-- Chapter selection view -->
+    <div id="chapterList" class="fixed inset-0 bg_white z_50 overflow_auto hidden">
+      <div class="p_4">
+        <h2 class="text-lg font-semibold mb_4">Select Chapter</h2>
+        <ul id="chapterListItems" class="divide-y divide-gray-200"></ul>
+        <button onclick="toggleChapterList(true)" class="mt-4 px_4 py_2 bg_blue_500 txt_white rounded">Close</button>
+      </div>
+    </div>
 
     <div id="transCon" class="mx_auto hidden">
       <div class="nav_btns mx_auto">

@@ -1,0 +1,262 @@
+* {
+	padding: 0;
+	margin: 0;
+}
+
+html {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+	"Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+	"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  line-height: 1.5;
+}
+body {
+	font-family: inherit;
+  line-height: inherit;
+	background-color: rgba(243, 244, 246);
+  color: rgba(17, 24, 39);
+	padding-left: 4vw;
+	padding-right: 4vw;
+}
+.nav {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: .25rem;
+	font-size: 1rem;
+	
+	padding-top: .5rem;
+	padding-bottom: .5rem;
+	padding-left: .5rem;
+	padding-right: .5rem;
+	margin-bottom: 1rem;
+	height: 5vh;
+}
+.navActive {
+	background-color: rgba(59, 130, 246);
+	color: white;
+}
+.navDisable {
+	background-color: #bbb;
+	color: #888;
+}
+.sq_btn {
+	background-color: rgba(96, 165, 250);
+	font-family: inherit;
+	width: 15vw;
+	height: 5vh;
+	border-radius: .25rem;
+	font-size: 1.2rem;
+}
+#playPause {
+	width: 82vw;
+}
+.space {
+	margin-top: 2vh;
+}
+
+#cover {
+	max-height: 36vh;
+	width: auto;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Tailwindcss equivalent */
+button {
+	font-family: inherit;
+  /* font-size: 100%; */
+	cursor: pointer;
+	line-height: inherit;
+	border-width: 0;
+}
+
+.bg_blue_400 {
+	background-color: rgba(96, 165, 250);
+}
+.bg_blue_500 {
+	background-color: rgba(59, 130, 246);
+}
+.bg_white {
+	background-color: white;
+}
+.txt_white {
+	color: white;
+}
+.text_red_600 {
+	color: rgba(220, 38, 38);
+}
+.text_blue_500 {
+	color: rgba(59, 130, 246);
+}
+.rounded {
+	border-radius: .25rem;
+}
+.rounded_2xl {
+	border-radius: 1rem;
+}
+.hidden {
+	display: none;
+}
+.p_4
+{
+  padding: 1rem;
+}
+.overflow_auto {
+	overflow: auto;
+}
+.w_full {
+	width: 100%;
+}
+.h_full {
+	height: 100%;
+}
+.p_2 {
+	padding: .5rem;
+}
+.py_2 {
+	padding-top: .5rem;
+	padding-bottom: .5rem;
+}
+.px_1 {
+	padding-left: .25rem;
+	padding-right: .25rem;
+}
+.px_2 {
+	padding-left: .5rem;
+	padding-right: .5rem;
+}
+.px_4 {
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+.mb_4 {
+	margin-bottom: 1rem;
+}
+.ml_4 {
+	margin-left: 1rem;
+}
+img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+	border: 1px solid #ccc;
+}
+.max_w_sm {
+	max-width: 24rem;
+}
+.mx_auto {
+	margin-left: auto;
+	margin-right: auto;
+}
+#transCon {
+	max-width: 80vw;
+	/* display: flex; */
+	/* flex-direction: column; */
+	justify-content: center;
+}
+
+.flex {
+	display: flex;
+}
+.items_center {
+	align-items: center;
+}
+.justify_between {
+	justify-content: space-between;
+}
+
+.txt_rack {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: .5rem;
+	font-size: .875rem;
+  line-height: 1.25rem;
+}
+.link {
+	color: rgba(37, 99, 235);
+	text-decoration: underline;
+}
+.nav_btns {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: nowrap;
+}
+.play_pause_rack {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.text_lg {
+	font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+.text_xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+.text_3xl {
+	font-size: 1.875rem;
+	line-height: 2.25rem;
+}
+.my_2 {
+	margin-top: .5rem;
+	margin-bottom: .5rem;
+}
+.z_50 {
+  z-index: 50;
+}
+.fixed {
+  position: fixed;
+}
+.left_0 {
+  left: 0;
+}
+.top_0 {
+  top: 0;
+}
+.font_bold {
+  font-weight: 700;
+}
+
+ul > li {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	/* margin-bottom: .5rem; */
+}
+
+ul > li > button {
+	color: rgba(59, 130, 246);
+}
+
+.font_semibold {
+  font-weight: 600;
+}
+
+#overlay {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 92.4vw;
+	height: 100vh;
+	z-index: 50;
+	padding: 1rem;
+	overflow: auto;
+	background-color: #efefef;
+}
+
+.bookmarks_view {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 92vw;
+	height: 100vh;
+	z-index: 50;
+	padding: 1rem;
+	overflow: auto;
+	background-color: #efefef;
+	/* background-color: rgba(243, 244, 246); */
+}

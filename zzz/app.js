@@ -7,7 +7,7 @@ const trackTitle = document.getElementById("trackTitle");
 const currentTimeDisplay = document.getElementById("currentTime");
 const coverImage = document.getElementById("cover");
 const chapterList = document.getElementById("chapterList");
-// const chapterListItems = document.getElementById("chapterListItems");
+const chapterListItems = document.getElementById("chapterListItems");
 const totalTimeDisplay = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
 const bookList = document.getElementById("bookList");
@@ -17,7 +17,7 @@ const bookListItemsRecent = document.getElementById("bookListItemsRecent");
 let recentBooks = [];
 let bookmarksByBook = {}; // bookmarks code
 let bookHandles = {};
-let dirHandle = {};
+
 
 const DB_NAME = "audiobook-app";
 const DB_VERSION = 1;
@@ -48,8 +48,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     navigator.storage.persist();
   }
   
-  dirHandle = await getStoredDirectoryHandle();
-  // const dirHandle = await getStoredDirectoryHandle();
+  const dirHandle = await getStoredDirectoryHandle();
   if (!dirHandle) return;
 
   // Check for permission before reading directory
@@ -66,25 +65,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (lastBook && bookHandles[lastBook]) {
       console.log('permission: ', permission);//DEBUG
       console.log('loadBook: ', lastBook);//DEBUG
-      // toggleBookList(true); // loads last book on start
-      toggleOverlay(true);
+      toggleBookList(true); // loads last book on start
       loadBook(lastBook);
       // loadBookmarks();
-
-      if (Object.keys(bookHandles).length === 0) {
-        disableBtn('booksBtn');
-      }
     }
   } else {
     console.warn("Permission to access directory was not granted.");
   }
 });
-
-function disableBtn(btnID) {
-  let booksBtn = document.getElementById(btnID);
-  booksBtn.classList.remove("navActive");
-  booksBtn.classList.add("navDisable");
-}
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -146,21 +134,20 @@ async function readBooksFromDirectory(dirHandle) {
 
     console.log("Books found:", Object.keys(bookHandles));
 
-    /*
     bookListItems.innerHTML = Object.keys(bookHandles).map(folder =>
-      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleOverlay(true)">${folder}</li>`
-      // `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
+      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
     ).join("");
-    */
 
-    toggleOverlay(false);
-    // toggleBookList(false);
+    toggleBookList(false);
   } catch (e) {
     console.error("Error reading directory", e);
   }
 }
 
 async function loadBook(folderName) {
+  // bookmarks code
+  document.getElementById("bookListRecent").classList.add("hidden");
+  
   const folderHandle = bookHandles[folderName];
   if (!folderHandle) return;
 
@@ -201,12 +188,9 @@ async function loadBook(folderName) {
     document.getElementById("bookTotalTime").textContent = hoursMinsSecs(totalDuration);
   });
 
-  /*
-  const chapterListItems = document.getElementById("chapterListItems");
   chapterListItems.innerHTML = tracks.map((t, i) =>
     `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleChapterList(true)">${t.title}</li>`
   ).join("");
-  */
 
   if (imageFile) {
     coverImage.src = URL.createObjectURL(imageFile);
@@ -234,11 +218,9 @@ async function loadBook(folderName) {
   localStorage.setItem("lastBook", folderName);
 }
 
-// Used to refresh books from directory
 async function selectBookRoot() {
   try {
-    dirHandle = await window.showDirectoryPicker();
-    // const dirHandle = await window.showDirectoryPicker();
+    const dirHandle = await window.showDirectoryPicker();
     await saveDirectoryHandle(dirHandle);
     await readBooksFromDirectory(dirHandle);
   } catch (err) {
@@ -246,7 +228,7 @@ async function selectBookRoot() {
   }
 }
 
-/* async function restoreBookRoot() {
+async function restoreBookRoot() {
   const dirHandle = await getStoredDirectoryHandle();
 
   if (!dirHandle) return;
@@ -262,7 +244,7 @@ async function selectBookRoot() {
       console.warn("Permission not granted to access directory");
     }
   }
-} */
+}
 
 // bookmarks code
 function addBookmark() {
@@ -283,16 +265,14 @@ function addBookmark() {
   saveBookmarks();
 }
 
-
-// ###############################
+// bookmarks code
 function openBookmarksOverlay() {
+  document.getElementById("bookmarksOverlay").classList.remove("hidden");
   const bookName = document.title;
   const bookmarks = bookmarksByBook[bookName] || [];
-  
-  const title = document.getElementById("overlayTitle")
-  title.innerHTML = 'Bookmarks';
-  
-  const list = document.getElementById("overlayList");
+
+  const list = document.getElementById("bookmarksList");
+
   list.innerHTML = "";
 
   if (bookmarks.length === 0) {
@@ -300,14 +280,14 @@ function openBookmarksOverlay() {
   } else {
     bookmarks.forEach((b, i) => {
       const li = document.createElement("li");
-      li.className = "flex items_center justify_between";
-
+      li.className = "flex items-center justify-between";
+      
       const button = document.createElement("button");
       button.textContent = b.label;
       button.className = "txt_blue_500";
       button.addEventListener("click", () => {
         seekToBookmark(b);
-        toggleOverlay(true); // hide overlay after click
+        toggleBookmarksOverlay(true); // hide overlay after click
       });
 
       const removeBtn = document.createElement("button");
@@ -322,47 +302,12 @@ function openBookmarksOverlay() {
       list.appendChild(li);
     });
   }
-  toggleOverlay(false); // show overlay
+
+  toggleBookmarksOverlay(false); // Show
 }
-// ###############################
-function openRecentOverlay() {
-  const title = document.getElementById("overlayTitle")
-  title.innerHTML = 'Recent Audio Books';
-
-  const list = document.getElementById("overlayList");
-  list.innerHTML = "";
-
-  if (recentBooks.length === 0) {
-    list.innerHTML = `<li>Empty</li>`;
-  } else {
-    list.innerHTML = recentBooks.map(book =>
-      `<li class="p_2 flex justify_between items_center">
-        <span onclick="loadBook('${book}'); toggleBookListRecent(true)">${book}</span>
-        <button class="text_red_500 ml_4 text_3xl" onclick="removeRecentBook('${book}')">✕</button>
-      </li>`
-    ).join("");
-  }
-  toggleOverlay(false); // show overlay
-}
-
-// ###############################
-function openChaptersOverlay() {
-  const title = document.getElementById("overlayTitle")
-  title.innerHTML = 'Select Chapter';
-
-  const list = document.getElementById("overlayList");
-  list.innerHTML = "";
-
-  list.innerHTML = tracks.map((t, i) =>
-    `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleOverlay(true)">${t.title}</li>`
-  ).join("");
-
-  toggleOverlay(false);
-}
-
-// ###############################
-function toggleOverlay(forceHide = null) {
-  const overlay = document.getElementById("overlay");
+// bookmarks code
+function toggleBookmarksOverlay(forceHide = null) {
+  const overlay = document.getElementById("bookmarksOverlay");
   if (forceHide !== null) {
     overlay.classList.toggle("hidden", forceHide);
   } else {
@@ -391,41 +336,34 @@ function loadBookmarks() {
   bookmarksByBook = stored ? JSON.parse(stored) : {};
 }
 
-function openBooksOverlay() {
-  if (Object.keys(bookHandles).length > 0) {
-    const title = document.getElementById("overlayTitle")
-    title.innerHTML = 'Select Audio Book';
-    
-    const list = document.getElementById("overlayList");
-    list.innerHTML = "";
 
-    list.innerHTML = Object.keys(bookHandles).map(folder =>
-      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleOverlay(true)">${folder}</li>`
-      // `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
-    ).join("");
-    
-    toggleOverlay(false);
-    console.log(Object.keys(bookHandles));
+function handleBookButtonClick() {
+  if (Object.keys(bookHandles).length > 0) {
+    toggleBookList(false); // Show the list immediately
+  } else {
+    document.getElementById("bookRootTrigger").click(); // Trigger hidden button
   }
 }
 
-/* function zzz_handleBookButtonClick() {
-  if (Object.keys(bookHandles).length > 0) {
-    // toggleBookList(false); // Show the list immediately
-    toggleOverlay(false);
-    console.log(Object.keys(bookHandles));
+function handleRecentButtonClick() {
+  if (recentBooks.length === 0) {
+    bookListItemsRecent.innerHTML = "<p>Empty</p>";
+  } else {
+    bookListItemsRecent.innerHTML = recentBooks.map(folder =>
+      `<li class="p-2 hover:bg-gray-100 flex justify-between items-center">
+        <span class="cursor-pointer" onclick="loadBook('${folder}'); toggleBookListRecent(true)">${folder}</span>
+        <button class="text-red-500 ml-2 mr-2 text-2xl" onclick="removeRecentBook('${folder}')">✕</button>
+      </li>`
+    ).join("");
   }
-  else {
-    // document.getElementById("bookRootTrigger").click(); // Trigger hidden button
-    disableBtn('booksBtn');
-  }
-} */
+
+  toggleBookListRecent(false); // Show the recent book list
+}
 
 function removeRecentBook(folderName) {
   recentBooks = recentBooks.filter(name => name !== folderName);
   saveRecentBooks();
-  // handleRecentButtonClick(); // Re-render the list
-  openRecentOverlay();
+  handleRecentButtonClick(); // Re-render the list
 }
 
 function removeBookmark(bookName, index) {
@@ -451,13 +389,13 @@ function loadRecentBooks() {
   if (stored) recentBooks = JSON.parse(stored);
 }
 
-/* function toggleBookList(forceHide = null) {
+function toggleBookList(forceHide = null) {
   if (forceHide !== null) {
     bookList.classList.toggle("hidden", forceHide);
   } else {
     bookList.classList.toggle("hidden");
   }
-} */
+}
 
 function toggleBookListRecent(forceHide = null) {
   if (forceHide !== null) {
@@ -499,8 +437,7 @@ function nextTrack() {
 }
 
 trackTitle.addEventListener("click", () => {
-  // toggleChapterList();
-  openChaptersOverlay();
+  toggleChapterList();
 });
 
 function toggleChapterList(forceHide = null) {
