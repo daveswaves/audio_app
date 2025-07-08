@@ -1,6 +1,7 @@
 /* app.js */
 let tracks = [];
 let currentTrack = 0;
+let lastSecond = -1;
 const audio = document.getElementById("audio");
 const playPauseBtn = document.getElementById("playPause");
 const trackTitle = document.getElementById("trackTitle");
@@ -10,12 +11,11 @@ const chapterList = document.getElementById("chapterList");
 // const chapterListItems = document.getElementById("chapterListItems");
 const totalTimeDisplay = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
-const bookList = document.getElementById("bookList");
-const bookListItems = document.getElementById("bookListItems");
-const bookListItemsRecent = document.getElementById("bookListItemsRecent");
-// let allFilesByFolder = {};
+// const bookList = document.getElementById("bookList");
+// const bookListItems = document.getElementById("bookListItems");
+// const bookListItemsRecent = document.getElementById("bookListItemsRecent");
 let recentBooks = [];
-let bookmarksByBook = {}; // bookmarks code
+let bookmarksByBook = {};
 let bookHandles = {};
 let dirHandle = {};
 
@@ -24,24 +24,10 @@ const DB_VERSION = 1;
 const STORE_NAME = "handles";
 
 loadRecentBooks();
-loadBookmarks(); // bookmarks code
+loadBookmarks();
 
 // Setup service worker
 setupServiceWorker();
-
-function setupServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(registration => {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        })
-        .catch(error => {
-          console.log('ServiceWorker registration failed: ', error);
-        });
-    });
-  }
-}
 
 window.addEventListener("DOMContentLoaded", async () => {
   if (navigator.storage && navigator.storage.persist) {
@@ -58,52 +44,29 @@ window.addEventListener("DOMContentLoaded", async () => {
     permission = await dirHandle.requestPermission({ mode: "read" });
   }
 
-  
   if (permission === "granted") {
     await readBooksFromDirectory(dirHandle);
     
     const lastBook = localStorage.getItem("lastBook");
     if (lastBook && bookHandles[lastBook]) {
-      console.log('permission: ', permission);//DEBUG
-      console.log('loadBook: ', lastBook);//DEBUG
+      // console.log('permission: ', permission);//DEBUG
+      // console.log('loadBook: ', lastBook);//DEBUG
       // toggleBookList(true); // loads last book on start
       toggleOverlay(true);
       loadBook(lastBook);
       // loadBookmarks();
 
       if (Object.keys(bookHandles).length === 0) {
-        disableBtn('booksBtn');
+        disableBtn('booksBtn', true);
+      }
+      if (recentBooks.length === 0) {
+        disableBtn('recentsBtn', true);
       }
     }
   } else {
     console.warn("Permission to access directory was not granted.");
   }
 });
-
-function disableBtn(btnID) {
-  let booksBtn = document.getElementById(btnID);
-  booksBtn.classList.remove("navActive");
-  booksBtn.classList.add("navDisable");
-}
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-    };
-  });
-}
-
-// Allows bookList to be updated if extra audio books have been uploaded
-function refreshBooks() {
-  selectBookRoot();
-}
 
 async function saveDirectoryHandle(handle) {
   const db = await openDB();
@@ -144,17 +107,7 @@ async function readBooksFromDirectory(dirHandle) {
       }
     }
 
-    console.log("Books found:", Object.keys(bookHandles));
-
-    /*
-    bookListItems.innerHTML = Object.keys(bookHandles).map(folder =>
-      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleOverlay(true)">${folder}</li>`
-      // `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
-    ).join("");
-    */
-
     toggleOverlay(false);
-    // toggleBookList(false);
   } catch (e) {
     console.error("Error reading directory", e);
   }
@@ -169,6 +122,8 @@ async function loadBook(folderName) {
     const file = await entry.getFile();
     files.push(file);
   }
+
+  // console.log('Files:', files);
 
   // Save to recentBooks
   if (!recentBooks.includes(folderName)) {
@@ -238,7 +193,6 @@ async function loadBook(folderName) {
 async function selectBookRoot() {
   try {
     dirHandle = await window.showDirectoryPicker();
-    // const dirHandle = await window.showDirectoryPicker();
     await saveDirectoryHandle(dirHandle);
     await readBooksFromDirectory(dirHandle);
   } catch (err) {
@@ -246,25 +200,93 @@ async function selectBookRoot() {
   }
 }
 
-/* async function restoreBookRoot() {
-  const dirHandle = await getStoredDirectoryHandle();
+trackTitle.addEventListener("click", () => {
+  openChaptersOverlay();
+});
 
-  if (!dirHandle) return;
+audio.addEventListener("loadedmetadata", () => {
+  remainingTimeDisplay.textContent = hoursMinsSecs(audio.duration);
+  currentTimeDisplay.textContent = '0:00';
+});
 
-  const permission = await dirHandle.queryPermission({ mode: "read" });
-  if (permission === "granted") {
-    await readBooksFromDirectory(dirHandle);
-  } else {
-    const reqPermission = await dirHandle.requestPermission({ mode: "read" });
-    if (reqPermission === "granted") {
-      await readBooksFromDirectory(dirHandle);
-    } else {
-      console.warn("Permission not granted to access directory");
-    }
+// Auto-play next track
+audio.addEventListener("ended", () => {
+  if (currentTrack < tracks.length - 1) {
+    loadTrack(currentTrack + 1);
+    setTimeout(() => {
+      audio.play();
+      playPauseBtn.textContent = "pause";
+    }, 500);
   }
-} */
+});
 
-// bookmarks code
+audio.addEventListener("timeupdate", () => {
+  const currentRounded = Math.floor(audio.currentTime);
+  
+  // Only update when the second actually changes
+  if (currentRounded === lastSecond) return;
+  lastSecond = currentRounded;
+  
+  const remaining = Math.max(Math.floor(audio.duration) - currentRounded, 0);
+  
+  if (!isNaN(remaining)) {
+    currentTimeDisplay.textContent = hoursMinsSecs(currentRounded);
+    remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
+  }
+});
+
+// Save playback position on pause or exit
+audio.addEventListener("pause", savePlaybackPosition);
+window.addEventListener("beforeunload", savePlaybackPosition);
+
+
+// *************************************************
+// FUNCTIONS FUNCTIONS FUNCTIONS FUNCTIONS FUNCTIONS
+// *************************************************
+
+function disableBtn(btnID, flag) {
+  let btn = document.getElementById(btnID);
+  if (flag) {
+    btn.classList.remove("navActive");
+    btn.classList.add("navDisable");
+  } else {
+    btn.classList.remove("navDisable");
+    btn.classList.add("navActive");
+  }
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+  });
+}
+
+function refreshBooks() {
+  selectBookRoot();
+}
+
+function setupServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(error => {
+          console.log('ServiceWorker registration failed: ', error);
+        });
+    });
+  }
+}
+
 function addBookmark() {
   const bookName = document.title;
   const time = Math.floor(audio.currentTime);
@@ -283,8 +305,6 @@ function addBookmark() {
   saveBookmarks();
 }
 
-
-// ###############################
 function openBookmarksOverlay() {
   const bookName = document.title;
   const bookmarks = bookmarksByBook[bookName] || [];
@@ -324,28 +344,63 @@ function openBookmarksOverlay() {
   }
   toggleOverlay(false); // show overlay
 }
-// ###############################
-function openRecentOverlay() {
-  const title = document.getElementById("overlayTitle")
-  title.innerHTML = 'Recent Audio Books';
 
-  const list = document.getElementById("overlayList");
+// Refactored to combine books & recent views
+async function openOverlay(view) {
+  let title = document.getElementById("overlayTitle")
+  let list = document.getElementById("overlayList");
+  title.innerHTML = "";
   list.innerHTML = "";
-
-  if (recentBooks.length === 0) {
-    list.innerHTML = `<li>Empty</li>`;
-  } else {
-    list.innerHTML = recentBooks.map(book =>
-      `<li class="p_2 flex justify_between items_center">
-        <span onclick="loadBook('${book}'); toggleBookListRecent(true)">${book}</span>
-        <button class="text_red_500 ml_4 text_3xl" onclick="removeRecentBook('${book}')">✕</button>
-      </li>`
-    ).join("");
+  
+  let arr = [];
+  if ('recent' == view && recentBooks.length > 0) {
+    title.innerHTML = 'Recent Audio Books';
+    arr = recentBooks;
   }
-  toggleOverlay(false); // show overlay
+  else if ('book' == view && Object.keys(bookHandles).length > 0) {
+    title.innerHTML = 'Select Audio Book';
+    arr = Object.keys(bookHandles);
+  }
+
+  if (title.innerHTML) {
+    list.innerHTML = arr.map((book, i) => {
+      let rmvBtn = '';
+      let selectFnc = 'selectNewBook()';
+      if ('recent' == view) {
+        rmvBtn = `<button class="text_red_500 text_3xl" onclick="removeRecentBook('${book}')">✕</button>`;
+        selectFnc = 'toggleOverlay(true)';
+      }
+      return `
+        <li style="display: flex; align-items: center; padding-bottom: .5rem; gap: 0.5rem;">
+          <img id="cover${i}" class="covers" src="" alt="Cover">
+          <div style="flex-grow: 1;" class="book_title" onclick="loadBook('${book}'); ${selectFnc}">${book}</div>
+          ${rmvBtn}
+        </li>`
+    }).join("");
+
+    // Required to render book cover thumbs
+    let rootHandle = await getStoredDirectoryHandle();
+    if (rootHandle) {
+      for (let i = 0; i < arr.length; i++) {
+        const bookName = arr[i];
+        try {
+          const bookDirHandle = await rootHandle.getDirectoryHandle(bookName);
+          const coverFileHandle = await bookDirHandle.getFileHandle("cover.jpg");
+          const file = await coverFileHandle.getFile();
+          const url = URL.createObjectURL(file);
+
+          // Set the image src
+          document.getElementById(`cover${i}`).src = url;
+        } catch (e) {
+          console.warn(`Could not load cover for ${bookName}:`, e);
+          document.getElementById(`cover${i}`).alt = "No cover";
+        }
+      }
+    }
+    toggleOverlay(false); // show overlay
+  }
 }
 
-// ###############################
 function openChaptersOverlay() {
   const title = document.getElementById("overlayTitle")
   title.innerHTML = 'Select Chapter';
@@ -360,7 +415,11 @@ function openChaptersOverlay() {
   toggleOverlay(false);
 }
 
-// ###############################
+function selectNewBook() {
+  disableBtn('recentsBtn', false);
+  toggleOverlay(true);
+}
+
 function toggleOverlay(forceHide = null) {
   const overlay = document.getElementById("overlay");
   if (forceHide !== null) {
@@ -370,7 +429,6 @@ function toggleOverlay(forceHide = null) {
   }
 }
 
-// bookmarks code
 function seekToBookmark(bookmark) {
   if (bookmark.trackIndex !== currentTrack) {
     loadTrack(bookmark.trackIndex);
@@ -380,92 +438,58 @@ function seekToBookmark(bookmark) {
   playPauseBtn.textContent = "pause";
 }
 
-// bookmarks code
 function saveBookmarks() {
   localStorage.setItem("bookmarksByBook", JSON.stringify(bookmarksByBook));
 }
 
-// bookmarks code
 function loadBookmarks() {
   const stored = localStorage.getItem("bookmarksByBook");
   bookmarksByBook = stored ? JSON.parse(stored) : {};
 }
 
-function openBooksOverlay() {
-  if (Object.keys(bookHandles).length > 0) {
-    const title = document.getElementById("overlayTitle")
-    title.innerHTML = 'Select Audio Book';
-    
-    const list = document.getElementById("overlayList");
-    list.innerHTML = "";
-
-    list.innerHTML = Object.keys(bookHandles).map(folder =>
-      `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleOverlay(true)">${folder}</li>`
-      // `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadBook('${folder}'); toggleBookList(true)">${folder}</li>`
-    ).join("");
-    
-    toggleOverlay(false);
-    console.log(Object.keys(bookHandles));
-  }
-}
-
-/* function zzz_handleBookButtonClick() {
-  if (Object.keys(bookHandles).length > 0) {
-    // toggleBookList(false); // Show the list immediately
-    toggleOverlay(false);
-    console.log(Object.keys(bookHandles));
-  }
-  else {
-    // document.getElementById("bookRootTrigger").click(); // Trigger hidden button
-    disableBtn('booksBtn');
-  }
-} */
-
 function removeRecentBook(folderName) {
   recentBooks = recentBooks.filter(name => name !== folderName);
   saveRecentBooks();
-  // handleRecentButtonClick(); // Re-render the list
-  openRecentOverlay();
+
+  if (recentBooks.length === 0) {
+    disableBtn('recentsBtn', true);
+    toggleOverlay(true); // hide overlay
+  } else {
+    openOverlay('recent'); // Re-render the list
+  }
 }
 
 function removeBookmark(bookName, index) {
   if (!bookmarksByBook[bookName]) return;
 
-  bookmarksByBook[bookName].splice(index, 1);
-  if (bookmarksByBook[bookName].length === 0) {
-    delete bookmarksByBook[bookName]; // clean up empty list
-  }
+  console.log(bookmarksByBook);
 
-  saveBookmarks();
-  openBookmarksOverlay(); // refresh list
+  // bookmarksByBook[bookName].splice(index, 1);
+  // if (bookmarksByBook[bookName].length === 0) {
+  //   delete bookmarksByBook[bookName]; // clean up empty list
+  // }
+
+  // saveBookmarks();
+  // openBookmarksOverlay(); // refresh list
 }
 
-// Save recent books to localStorage
 function saveRecentBooks() {
   localStorage.setItem("recentBooks", JSON.stringify(recentBooks));
 }
 
-// Load recent books from localStorage
 function loadRecentBooks() {
   const stored = localStorage.getItem("recentBooks");
   if (stored) recentBooks = JSON.parse(stored);
 }
 
-/* function toggleBookList(forceHide = null) {
-  if (forceHide !== null) {
-    bookList.classList.toggle("hidden", forceHide);
-  } else {
-    bookList.classList.toggle("hidden");
-  }
-} */
-
-function toggleBookListRecent(forceHide = null) {
-  if (forceHide !== null) {
-    bookListRecent.classList.toggle("hidden", forceHide);
-  } else {
-    bookListRecent.classList.toggle("hidden");
-  }
-}
+// function toggleBookListRecent(forceHide = null) {
+  // if (forceHide !== null) {
+  //   bookListRecent.classList.toggle("hidden", forceHide);
+  //   toggleOverlay(true);
+  // } else {
+  //   bookListRecent.classList.toggle("hidden");
+  // }
+// }
 
 function loadTrack(index) {
   currentTrack = index;
@@ -498,11 +522,6 @@ function nextTrack() {
   if (currentTrack < tracks.length - 1) loadTrack(currentTrack + 1);
 }
 
-trackTitle.addEventListener("click", () => {
-  // toggleChapterList();
-  openChaptersOverlay();
-});
-
 function toggleChapterList(forceHide = null) {
   if (forceHide !== null) {
     chapterList.classList.toggle("hidden", forceHide);
@@ -530,42 +549,3 @@ function savePlaybackPosition() {
   };
   localStorage.setItem("positions", JSON.stringify(positionData));
 }
-
-
-
-let lastSecond = -1;
-
-audio.addEventListener("loadedmetadata", () => {
-  remainingTimeDisplay.textContent = hoursMinsSecs(audio.duration);
-  currentTimeDisplay.textContent = '0:00';
-});
-
-// Auto-play next track
-audio.addEventListener("ended", () => {
-  if (currentTrack < tracks.length - 1) {
-    loadTrack(currentTrack + 1);
-    setTimeout(() => {
-      audio.play();
-      playPauseBtn.textContent = "pause";
-    }, 500);
-  }
-});
-
-audio.addEventListener("timeupdate", () => {
-  const currentRounded = Math.floor(audio.currentTime);
-  
-  // Only update when the second actually changes
-  if (currentRounded === lastSecond) return;
-  lastSecond = currentRounded;
-  
-  const remaining = Math.max(Math.floor(audio.duration) - currentRounded, 0);
-  
-  if (!isNaN(remaining)) {
-    currentTimeDisplay.textContent = hoursMinsSecs(currentRounded);
-    remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
-  }
-});
-
-// Save playback position on pause or exit
-audio.addEventListener("pause", savePlaybackPosition);
-window.addEventListener("beforeunload", savePlaybackPosition);

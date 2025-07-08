@@ -13,15 +13,11 @@
 <body>
   <div class="max_w_sm mx_auto p_2 space">
     <div style="display: flex; justify-content: space-between;" class="px_1">
-      <button id="booksBtn" onclick="openBooksOverlay()" class="nav navActive">Books</button>
-      <!-- <button id="booksBtn" onclick="handleBookButtonClick()" class="nav navActive">Books</button> -->
+      <button id="booksBtn" onclick="openOverlay('book')" class="nav navActive">Books</button>
 
       <button onclick="refreshBooks()" class="nav navActive">Refresh</button>
       
-      <button onclick="openRecentOverlay()" class="nav navActive">Recent</button>
-      <!-- <button onclick="handleRecentButtonClick()" class="nav">Recent</button> -->
-      
-      <!-- <button onclick="selectBookRoot()" id="bookRootTrigger" class="nav mb_4 px_4 py_2 bg_blue_500 txt_white rounded hidden">Select</button> -->
+      <button id="recentsBtn" onclick="openOverlay('recent')" class="nav navActive">Recent</button>
       
       <button onclick="addBookmark()" style="width: 12vw;" class="nav navActive">
         <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="36" height="36">
@@ -35,7 +31,6 @@
         </svg>
         View
       </button>
-      <!-- <button onclick="openBookmarksOverlay()" class="nav">Bookmarks</button> -->
     </div>
 
     <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
@@ -59,15 +54,6 @@
       <ul id="overlayList"></ul>
     </div>
 
-    <!-- Book List -->
-    <!-- <div id="bookList" class="fixed inset-0 bg_white z_50 overflow_auto hidden">
-      <div class="p_4">
-        <h2 class="text_lg font_semibold mb_4">Select Audio Book</h2>
-        <ul id="bookListItems" class="divide-y divide-gray-200"></ul>
-        <button onclick="toggleBookList(true)" class="mt-4 px_4 py_2 bg_blue_500 txt_white rounded">Close</button>
-      </div>
-    </div> -->
-
     <div id="transCon" class="mx_auto hidden">
       <div class="nav_btns mx_auto">
         <button onclick="prevTrack()" class="sq_btn">&lt;</button>
@@ -82,7 +68,6 @@
       </div>
 
       <div class="nav_btns mx_auto">
-      <!-- <div class="nav_btns flex items-center justify-center space-x-2 flex-nowrap"> -->
         <button onclick="skipTime(2)" class="sq_btn">+2s</button>
         <button onclick="skipTime(5)" class="sq_btn">+5s</button>
         <button onclick="skipTime(10)" class="sq_btn">+10s</button>
@@ -92,7 +77,6 @@
     </div>
   </div>
 
-  <!-- <script src="db.js"></script> -->
   <script src="app.js"></script>
 </body>
 </html>
