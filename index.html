@@ -15,17 +15,17 @@
     <div style="display: flex; justify-content: space-between;" class="px_1">
       <button id="booksBtn" onclick="openOverlay('book')" class="nav navActive">Books</button>
 
-      <button onclick="refreshBooks()" class="nav navActive">Refresh</button>
+      <button onclick="selectBookRoot()" class="nav navActive">Refresh</button>
       
       <button id="recentsBtn" onclick="openOverlay('recent')" class="nav navActive">Recent</button>
       
-      <button onclick="addBookmark()" style="width: 12vw;" class="nav navActive">
+      <button id="bmkBtn" onclick="addBookmark()" style="width: 12vw;" class="nav navActive">
         <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="36" height="36">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
       </button>
 
-      <button onclick="openBookmarksOverlay()" class="nav navActive">
+      <button id="bmkViewBtn" onclick="openBookmarksOverlay()" class="nav navActive">
         <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="20" height="20">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
@@ -33,10 +33,12 @@
       </button>
     </div>
 
+    <!-- Hide when no directory selected -->
     <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
     
     <audio id="audio" preload="metadata"></audio>
 
+    <!-- Hide when no directory selected -->
     <div class="txt_rack">
       <button id="trackTitle" class="link"></button>
     </div>

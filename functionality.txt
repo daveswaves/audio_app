@@ -1,0 +1,3 @@
+The "Refresh" button calls the refreshBooks() function, which calls the selectBookRoot() function.
+
+The "Refresh" button calls the selectBookRoot() function.

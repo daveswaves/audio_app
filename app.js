@@ -33,10 +33,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist();
   }
-  
+
   dirHandle = await getStoredDirectoryHandle();
-  // const dirHandle = await getStoredDirectoryHandle();
-  if (!dirHandle) return;
+  if (!dirHandle) {
+    // console.log('No dirHandle');
+    disableBtn('booksBtn', true);
+    disableBtn('recentsBtn', true);
+    disableBtn('bmkBtn', true);
+    disableBtn('bmkViewBtn', true);
+    return
+  };
 
   // Check for permission before reading directory
   let permission = await dirHandle.queryPermission({ mode: "read" });
@@ -46,7 +52,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   if (permission === "granted") {
     await readBooksFromDirectory(dirHandle);
-    
+
     const lastBook = localStorage.getItem("lastBook");
     if (lastBook && bookHandles[lastBook]) {
       // console.log('permission: ', permission);//DEBUG
@@ -67,6 +73,50 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.warn("Permission to access directory was not granted.");
   }
 });
+
+trackTitle.addEventListener("click", () => {
+  openChaptersOverlay();
+});
+
+audio.addEventListener("loadedmetadata", () => {
+  remainingTimeDisplay.textContent = hoursMinsSecs(audio.duration);
+  currentTimeDisplay.textContent = '0:00';
+});
+
+// Auto-play next track
+audio.addEventListener("ended", () => {
+  if (currentTrack < tracks.length - 1) {
+    loadTrack(currentTrack + 1);
+    setTimeout(() => {
+      audio.play();
+      playPauseBtn.textContent = "pause";
+    }, 500);
+  }
+});
+
+audio.addEventListener("timeupdate", () => {
+  const currentRounded = Math.floor(audio.currentTime);
+  
+  // Only update when the second actually changes
+  if (currentRounded === lastSecond) return;
+  lastSecond = currentRounded;
+  
+  const remaining = Math.max(Math.floor(audio.duration) - currentRounded, 0);
+  
+  if (!isNaN(remaining)) {
+    currentTimeDisplay.textContent = hoursMinsSecs(currentRounded);
+    remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
+  }
+});
+
+// Save playback position on pause or exit
+audio.addEventListener("pause", savePlaybackPosition);
+window.addEventListener("beforeunload", savePlaybackPosition);
+
+
+// *************************************************
+// FUNCTIONS FUNCTIONS FUNCTIONS FUNCTIONS FUNCTIONS
+// *************************************************
 
 async function saveDirectoryHandle(handle) {
   const db = await openDB();
@@ -104,6 +154,7 @@ async function readBooksFromDirectory(dirHandle) {
     for await (const [bookName, bookHandle] of dirHandle.entries()) {
       if (bookHandle.kind === "directory") {
         bookHandles[bookName] = bookHandle;
+        disableBtn('booksBtn', false);
       }
     }
 
@@ -156,13 +207,6 @@ async function loadBook(folderName) {
     document.getElementById("bookTotalTime").textContent = hoursMinsSecs(totalDuration);
   });
 
-  /*
-  const chapterListItems = document.getElementById("chapterListItems");
-  chapterListItems.innerHTML = tracks.map((t, i) =>
-    `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleChapterList(true)">${t.title}</li>`
-  ).join("");
-  */
-
   if (imageFile) {
     coverImage.src = URL.createObjectURL(imageFile);
     coverImage.classList.remove("hidden");
@@ -200,50 +244,6 @@ async function selectBookRoot() {
   }
 }
 
-trackTitle.addEventListener("click", () => {
-  openChaptersOverlay();
-});
-
-audio.addEventListener("loadedmetadata", () => {
-  remainingTimeDisplay.textContent = hoursMinsSecs(audio.duration);
-  currentTimeDisplay.textContent = '0:00';
-});
-
-// Auto-play next track
-audio.addEventListener("ended", () => {
-  if (currentTrack < tracks.length - 1) {
-    loadTrack(currentTrack + 1);
-    setTimeout(() => {
-      audio.play();
-      playPauseBtn.textContent = "pause";
-    }, 500);
-  }
-});
-
-audio.addEventListener("timeupdate", () => {
-  const currentRounded = Math.floor(audio.currentTime);
-  
-  // Only update when the second actually changes
-  if (currentRounded === lastSecond) return;
-  lastSecond = currentRounded;
-  
-  const remaining = Math.max(Math.floor(audio.duration) - currentRounded, 0);
-  
-  if (!isNaN(remaining)) {
-    currentTimeDisplay.textContent = hoursMinsSecs(currentRounded);
-    remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
-  }
-});
-
-// Save playback position on pause or exit
-audio.addEventListener("pause", savePlaybackPosition);
-window.addEventListener("beforeunload", savePlaybackPosition);
-
-
-// *************************************************
-// FUNCTIONS FUNCTIONS FUNCTIONS FUNCTIONS FUNCTIONS
-// *************************************************
-
 function disableBtn(btnID, flag) {
   let btn = document.getElementById(btnID);
   if (flag) {
@@ -269,9 +269,9 @@ function openDB() {
   });
 }
 
-function refreshBooks() {
-  selectBookRoot();
-}
+// function refreshBooks() {
+//   selectBookRoot();
+// }
 
 function setupServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -302,10 +302,17 @@ function addBookmark() {
     label
   });
 
+  disableBtn('bmkViewBtn', false);
+
   saveBookmarks();
 }
 
 function openBookmarksOverlay() {
+  if (!localStorage.getItem("bookmarksByBook")) return
+
+  stored = localStorage.getItem("bookmarksByBook");
+  bookmarksByBook = stored ? JSON.parse(stored) : {};
+  
   const bookName = document.title;
   const bookmarks = bookmarksByBook[bookName] || [];
   
@@ -315,9 +322,8 @@ function openBookmarksOverlay() {
   const list = document.getElementById("overlayList");
   list.innerHTML = "";
 
-  if (bookmarks.length === 0) {
-    list.innerHTML = `<li class="text-gray-500 italic">No bookmarks yet.</li>`;
-  } else {
+  if (bookmarks.length === 0) return
+  else {
     bookmarks.forEach((b, i) => {
       const li = document.createElement("li");
       li.className = "flex items_center justify_between";
@@ -462,15 +468,15 @@ function removeRecentBook(folderName) {
 function removeBookmark(bookName, index) {
   if (!bookmarksByBook[bookName]) return;
 
-  console.log(bookmarksByBook);
+  // console.log(bookmarksByBook);
 
-  // bookmarksByBook[bookName].splice(index, 1);
-  // if (bookmarksByBook[bookName].length === 0) {
-  //   delete bookmarksByBook[bookName]; // clean up empty list
-  // }
+  bookmarksByBook[bookName].splice(index, 1);
+  if (bookmarksByBook[bookName].length === 0) {
+    delete bookmarksByBook[bookName]; // clean up empty list
+  }
 
-  // saveBookmarks();
-  // openBookmarksOverlay(); // refresh list
+  saveBookmarks();
+  openBookmarksOverlay(); // refresh list
 }
 
 function saveRecentBooks() {
