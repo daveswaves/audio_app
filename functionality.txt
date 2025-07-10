@@ -6,4 +6,47 @@ selectBookRoot() calls:
 
 If lastBook exists (local storage) enable #bmkBtn button.
 
+TODO:
+*) Clip length of title name.
+*) Hide timeInf div when app first starts and no audio book has been selected yet.
+*) Add progress bar to visualise percentage of chapter/book played.
+*) Fix refresh so that existing book cover image does not get replaced by "Press Books to select an audio book." image.
 
+* * * * * * * * * * * * * * * * * * * * * * * * *
+
+document.getElementById('booksBtn').disabled = true;
+
+disableBtn('recentsBtn', true); // disable
+
+'booksBtn','recentsBtn','bmkBtn','bmkViewBtn'
+
+function addBookmark()
+
+
+document.getElementById('bmkViewBtn').disabled = false;
+
+
+if (!bookmarksByBook || Object.keys(bookmarksByBook).length === 0) {}
+
+[Books  ] > openOverlay('book')    #bookBtn
+[Refresh] > selectBookRoot()       #refreshBtn
+[Recent ] > openOverlay('recent')  #recentsBtn
+[★      ] > addBookmark()          #bmkBtn
+[★ View ] > openBookmarksOverlay() #bmkViewBtn
+
+# The ID of button that displays the current chapter name is 'trackTitle'.
+# This is attached to an event listener to call the openChaptersOverlay() function, when clicked.
+trackTitle.addEventListener("click", () => {
+  openChaptersOverlay();
+});
+
+function openOverlay
+function openBookmarksOverlay
+
+
+const bookName = document.title;
+const bookmarks = bookmarksByBook[bookName] || [];
+
+
+disableBtns(['booksBtn','recentsBtn','bmkBtn','bmkViewBtn'], true);
+disableBtns(['booksBtn'], true);
