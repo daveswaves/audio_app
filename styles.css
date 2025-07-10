@@ -199,11 +199,11 @@ button {
 }
 .text_lg {
 	font-size: 1.125rem;
-  line-height: 1.75rem;
+  	line-height: 1.75rem;
 }
 .text_xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+	font-size: 1.25rem;
+	line-height: 1.75rem;
 }
 .text_3xl {
 	font-size: 1.875rem;
@@ -214,19 +214,19 @@ button {
 	margin-bottom: .5rem;
 }
 .z_50 {
-  z-index: 50;
+  	z-index: 50;
 }
 .fixed {
-  position: fixed;
+  	position: fixed;
 }
 .left_0 {
-  left: 0;
+  	left: 0;
 }
 .top_0 {
-  top: 0;
+  	top: 0;
 }
 .font_bold {
-  font-weight: 700;
+  	font-weight: 700;
 }
 
 /* ul > li {
@@ -244,7 +244,7 @@ ul > li > button {
 }
 
 .font_semibold {
-  font-weight: 600;
+  	font-weight: 600;
 }
 
 #overlay {

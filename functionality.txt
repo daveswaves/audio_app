@@ -1,3 +1,9 @@
-The "Refresh" button calls the refreshBooks() function, which calls the selectBookRoot() function.
+The "Refresh" button calls function selectBookRoot().
 
-The "Refresh" button calls the selectBookRoot() function.
+selectBookRoot() calls:
+    function saveDirectoryHandle
+    function readBooksFromDirectory
+
+If lastBook exists (local storage) enable #bmkBtn button.
+
+

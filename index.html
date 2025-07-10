@@ -15,7 +15,7 @@
     <div style="display: flex; justify-content: space-between;" class="px_1">
       <button id="booksBtn" onclick="openOverlay('book')" class="nav navActive">Books</button>
 
-      <button onclick="selectBookRoot()" class="nav navActive">Refresh</button>
+      <button id="refreshBtn" onclick="selectBookRoot()" class="nav navActive">Refresh</button>
       
       <button id="recentsBtn" onclick="openOverlay('recent')" class="nav navActive">Recent</button>
       
@@ -33,17 +33,16 @@
       </button>
     </div>
 
-    <!-- Hide when no directory selected -->
-    <img onclick="togglePlay()" id="cover" src="" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
+    <img onclick="togglePlay()" id="cover" src="default1.png" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
     
     <audio id="audio" preload="metadata"></audio>
 
     <!-- Hide when no directory selected -->
     <div class="txt_rack">
-      <button id="trackTitle" class="link"></button>
+      <button id="trackTitle" style="font-size: 1rem;" class="link"></button>
     </div>
 
-    <div id="timeInf" class="txt_rack hidden">
+    <div id="timeInf" style="font-size: 1rem;" class="txt_rack hidden">
       <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
     </div>
 

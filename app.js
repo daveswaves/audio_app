@@ -36,11 +36,11 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   dirHandle = await getStoredDirectoryHandle();
   if (!dirHandle) {
-    // console.log('No dirHandle');
-    disableBtn('booksBtn', true);
-    disableBtn('recentsBtn', true);
-    disableBtn('bmkBtn', true);
-    disableBtn('bmkViewBtn', true);
+    disableBtns(['booksBtn','recentsBtn','bmkBtn','bmkViewBtn'], true);
+    // ['booksBtn','recentsBtn','bmkBtn','bmkViewBtn'].forEach(btnID => {
+    //   disableBtn(btnID, true);
+    //   document.getElementById(btnID).disabled = true;
+    // });
     return
   };
 
@@ -63,13 +63,24 @@ window.addEventListener("DOMContentLoaded", async () => {
       // loadBookmarks();
 
       if (Object.keys(bookHandles).length === 0) {
-        disableBtn('booksBtn', true);
+        // disableBtn('booksBtn', true);
+        disableBtns(['booksBtn'], true);
       }
       if (recentBooks.length === 0) {
-        disableBtn('recentsBtn', true);
+        // disableBtn('recentsBtn', true);
+        disableBtns(['recentsBtn'], true);
       }
     }
-  } else {
+
+    // console.log(lastBook);
+    if (!bookmarksByBook || !bookmarksByBook[lastBook]) {
+      disableBtns(['bmkViewBtn'], true);
+      // disableBtn('bmkViewBtn', true);
+      // document.getElementById('bmkViewBtn').disabled = true;
+      // console.log('Disable bookmarks view');
+    }
+  }
+  else {
     console.warn("Permission to access directory was not granted.");
   }
 });
@@ -154,11 +165,16 @@ async function readBooksFromDirectory(dirHandle) {
     for await (const [bookName, bookHandle] of dirHandle.entries()) {
       if (bookHandle.kind === "directory") {
         bookHandles[bookName] = bookHandle;
-        disableBtn('booksBtn', false);
+        // Enable button
+        disableBtns(['booksBtn'], false);
+        // disableBtn('booksBtn', false);
+        // document.getElementById('booksBtn').disabled = false;
+        // Update default image
+        coverImage.src = 'default2.png';
       }
     }
 
-    toggleOverlay(false);
+    // toggleOverlay(false);
   } catch (e) {
     console.error("Error reading directory", e);
   }
@@ -176,11 +192,29 @@ async function loadBook(folderName) {
 
   // console.log('Files:', files);
 
+  // console.log(folderHandle.name);
+
+  if (bookmarksByBook[folderHandle.name]) {
+    disableBtns(['bmkViewBtn'], false);
+    // disableBtn('bmkViewBtn', false);
+    // document.getElementById('bmkViewBtn').disabled = false;
+  }
+  else {
+    disableBtns(['bmkViewBtn'], true);
+    // disableBtn('bmkViewBtn', true);
+    // document.getElementById('bmkViewBtn').disabled = true;
+  }
+
   // Save to recentBooks
   if (!recentBooks.includes(folderName)) {
     recentBooks.unshift(folderName);
     if (recentBooks.length > 6) recentBooks.pop();
     saveRecentBooks();
+
+    // Enable button
+    disableBtns(['bmkBtn'], false);
+    // disableBtn('bmkBtn', false);
+    // document.getElementById('bmkBtn').disabled = false;
   }
 
   const audioFiles = files.filter(f => f.type.startsWith("audio/"));
@@ -215,7 +249,7 @@ async function loadBook(folderName) {
   }
 
   document.title = folderName;
-  loadTrack(0);
+  // loadTrack(0);
 
   // Restore playback position
   const positionData = JSON.parse(localStorage.getItem("positions") || "{}");
@@ -242,6 +276,13 @@ async function selectBookRoot() {
   } catch (err) {
     console.error("Directory access cancelled or failed", err);
   }
+}
+
+function disableBtns(arrIDs, trueFalse) {
+  arrIDs.forEach(btnID => {
+    disableBtn(btnID, trueFalse);
+    document.getElementById(btnID).disabled = trueFalse;
+  });
 }
 
 function disableBtn(btnID, flag) {
@@ -302,16 +343,18 @@ function addBookmark() {
     label
   });
 
-  disableBtn('bmkViewBtn', false);
+  disableBtns(['bmkViewBtn'], false);
+  // disableBtn('bmkViewBtn', false);
+  // document.getElementById('bmkViewBtn').disabled = false;
 
   saveBookmarks();
 }
 
 function openBookmarksOverlay() {
-  if (!localStorage.getItem("bookmarksByBook")) return
-
   stored = localStorage.getItem("bookmarksByBook");
   bookmarksByBook = stored ? JSON.parse(stored) : {};
+
+  console.log(document.title);
   
   const bookName = document.title;
   const bookmarks = bookmarksByBook[bookName] || [];
@@ -322,32 +365,29 @@ function openBookmarksOverlay() {
   const list = document.getElementById("overlayList");
   list.innerHTML = "";
 
-  if (bookmarks.length === 0) return
-  else {
-    bookmarks.forEach((b, i) => {
-      const li = document.createElement("li");
-      li.className = "flex items_center justify_between";
+  bookmarks.forEach((b, i) => {
+    const li = document.createElement("li");
+    li.className = "flex items_center justify_between";
 
-      const button = document.createElement("button");
-      button.textContent = b.label;
-      button.className = "txt_blue_500";
-      button.addEventListener("click", () => {
-        seekToBookmark(b);
-        toggleOverlay(true); // hide overlay after click
-      });
-
-      const removeBtn = document.createElement("button");
-      removeBtn.innerHTML = "✕";
-      removeBtn.className = "text_red_600 ml_4 text_3xl";
-      removeBtn.addEventListener("click", () => {
-        removeBookmark(bookName, i);
-      });
-
-      li.appendChild(button);
-      li.appendChild(removeBtn);
-      list.appendChild(li);
+    const button = document.createElement("button");
+    button.textContent = b.label;
+    button.className = "txt_blue_500";
+    button.addEventListener("click", () => {
+      seekToBookmark(b);
+      toggleOverlay(true); // hide overlay after click
     });
-  }
+
+    const removeBtn = document.createElement("button");
+    removeBtn.innerHTML = "✕";
+    removeBtn.className = "text_red_600 ml_4 text_3xl";
+    removeBtn.addEventListener("click", () => {
+      removeBookmark(bookName, i);
+    });
+
+    li.appendChild(button);
+    li.appendChild(removeBtn);
+    list.appendChild(li);
+  });
   toggleOverlay(false); // show overlay
 }
 
@@ -379,7 +419,7 @@ async function openOverlay(view) {
       return `
         <li style="display: flex; align-items: center; padding-bottom: .5rem; gap: 0.5rem;">
           <img id="cover${i}" class="covers" src="" alt="Cover">
-          <div style="flex-grow: 1;" class="book_title" onclick="loadBook('${book}'); ${selectFnc}">${book}</div>
+          <div style="flex-grow: 1; list-style-type: none;" class="book_title" onclick="loadBook('${book}'); ${selectFnc}">${book}</div>
           ${rmvBtn}
         </li>`
     }).join("");
@@ -415,14 +455,15 @@ function openChaptersOverlay() {
   list.innerHTML = "";
 
   list.innerHTML = tracks.map((t, i) =>
-    `<li class="p-2 hover:bg-gray-100 cursor-pointer" onclick="loadTrack(${i}); toggleOverlay(true)">${t.title}</li>`
+    `<li class="p_2" style="list-style-type: none;" onclick="loadTrack(${i}); toggleOverlay(true)">${t.title}</li>`
   ).join("");
 
   toggleOverlay(false);
 }
 
 function selectNewBook() {
-  disableBtn('recentsBtn', false);
+  disableBtns(['recentsBtn'], false);
+  // disableBtn('recentsBtn', false);
   toggleOverlay(true);
 }
 
@@ -458,7 +499,8 @@ function removeRecentBook(folderName) {
   saveRecentBooks();
 
   if (recentBooks.length === 0) {
-    disableBtn('recentsBtn', true);
+    disableBtns(['recentsBtn'], true);
+    // disableBtn('recentsBtn', true);
     toggleOverlay(true); // hide overlay
   } else {
     openOverlay('recent'); // Re-render the list
@@ -501,7 +543,7 @@ function loadTrack(index) {
   currentTrack = index;
   const track = tracks[currentTrack];
   audio.src = track.file;
-  trackTitle.textContent = track.title;
+  trackTitle.textContent = track.title.slice(0, -4); // Remove '.mp3' from title name
   audio.load();
   playPauseBtn.textContent = "play";
 }
