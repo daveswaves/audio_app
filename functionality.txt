@@ -12,6 +12,32 @@ TODO:
 *) Add progress bar to visualise percentage of chapter/book played.
 *) Fix refresh so that existing book cover image does not get replaced by "Press Books to select an audio book." image.
 
+const booksBtn    = document.getElementById("booksBtn");
+const refreshBtn  = document.getElementById("refreshBtn");
+const recentsBtn  = document.getElementById("recentsBtn");
+const bmkBtn      = document.getElementById("bmkBtn");
+const bmkViewBtn  = document.getElementById("bmkViewBtn");
+const trkTitleBtn = document.getElementById("trkTitleBtn");
+
+booksBtn.addEventListener("click", () => {
+  openOverlay('book');
+});
+refreshBtn.addEventListener("click", () => {
+  selectBookRoot();
+});
+recentsBtn.addEventListener("click", () => {
+    openOverlay('recent');
+});
+bmkBtn.addEventListener("click", () => {
+  addBookmark();
+});
+bmkViewBtn.addEventListener("click", () => {
+  openBookmarksOverlay();
+});
+trkTitleBtn.addEventListener("click", () => {
+  openChaptersOverlay();
+});
+
 * * * * * * * * * * * * * * * * * * * * * * * * *
 
 document.getElementById('booksBtn').disabled = true;

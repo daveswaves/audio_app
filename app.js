@@ -2,18 +2,21 @@
 let tracks = [];
 let currentTrack = 0;
 let lastSecond = -1;
+
+const booksBtn     = document.getElementById("booksBtn");
+const refreshBtn   = document.getElementById("refreshBtn");
+const recentsBtn   = document.getElementById("recentsBtn");
+const bmkBtn       = document.getElementById("bmkBtn");
+const bmkViewBtn   = document.getElementById("bmkViewBtn");
+const trkTitleBtn  = document.getElementById("trkTitleBtn");
+const playPauseBtn = document.getElementById("playPauseBtn");
+
 const audio = document.getElementById("audio");
-const playPauseBtn = document.getElementById("playPause");
-const trackTitle = document.getElementById("trackTitle");
 const currentTimeDisplay = document.getElementById("currentTime");
 const coverImage = document.getElementById("cover");
 const chapterList = document.getElementById("chapterList");
-// const chapterListItems = document.getElementById("chapterListItems");
 const totalTimeDisplay = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
-// const bookList = document.getElementById("bookList");
-// const bookListItems = document.getElementById("bookListItems");
-// const bookListItemsRecent = document.getElementById("bookListItemsRecent");
 let recentBooks = [];
 let bookmarksByBook = {};
 let bookHandles = {};
@@ -63,11 +66,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       // loadBookmarks();
 
       if (Object.keys(bookHandles).length === 0) {
-        // disableBtn('booksBtn', true);
         disableBtns(['booksBtn'], true);
       }
       if (recentBooks.length === 0) {
-        // disableBtn('recentsBtn', true);
         disableBtns(['recentsBtn'], true);
       }
     }
@@ -75,9 +76,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     // console.log(lastBook);
     if (!bookmarksByBook || !bookmarksByBook[lastBook]) {
       disableBtns(['bmkViewBtn'], true);
-      // disableBtn('bmkViewBtn', true);
-      // document.getElementById('bmkViewBtn').disabled = true;
-      // console.log('Disable bookmarks view');
     }
   }
   else {
@@ -85,7 +83,23 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-trackTitle.addEventListener("click", () => {
+// Button click events
+booksBtn.addEventListener("click", () => {
+  openOverlay('book');
+});
+refreshBtn.addEventListener("click", () => {
+  selectBookRoot();
+});
+recentsBtn.addEventListener("click", () => {
+    openOverlay('recent');
+});
+bmkBtn.addEventListener("click", () => {
+  addBookmark();
+});
+bmkViewBtn.addEventListener("click", () => {
+  openBookmarksOverlay();
+});
+trkTitleBtn.addEventListener("click", () => {
   openChaptersOverlay();
 });
 
@@ -167,8 +181,6 @@ async function readBooksFromDirectory(dirHandle) {
         bookHandles[bookName] = bookHandle;
         // Enable button
         disableBtns(['booksBtn'], false);
-        // disableBtn('booksBtn', false);
-        // document.getElementById('booksBtn').disabled = false;
         // Update default image
         coverImage.src = 'default2.png';
       }
@@ -196,13 +208,9 @@ async function loadBook(folderName) {
 
   if (bookmarksByBook[folderHandle.name]) {
     disableBtns(['bmkViewBtn'], false);
-    // disableBtn('bmkViewBtn', false);
-    // document.getElementById('bmkViewBtn').disabled = false;
   }
   else {
     disableBtns(['bmkViewBtn'], true);
-    // disableBtn('bmkViewBtn', true);
-    // document.getElementById('bmkViewBtn').disabled = true;
   }
 
   // Save to recentBooks
@@ -213,8 +221,6 @@ async function loadBook(folderName) {
 
     // Enable button
     disableBtns(['bmkBtn'], false);
-    // disableBtn('bmkBtn', false);
-    // document.getElementById('bmkBtn').disabled = false;
   }
 
   const audioFiles = files.filter(f => f.type.startsWith("audio/"));
@@ -344,8 +350,6 @@ function addBookmark() {
   });
 
   disableBtns(['bmkViewBtn'], false);
-  // disableBtn('bmkViewBtn', false);
-  // document.getElementById('bmkViewBtn').disabled = false;
 
   saveBookmarks();
 }
@@ -463,7 +467,6 @@ function openChaptersOverlay() {
 
 function selectNewBook() {
   disableBtns(['recentsBtn'], false);
-  // disableBtn('recentsBtn', false);
   toggleOverlay(true);
 }
 
@@ -500,7 +503,6 @@ function removeRecentBook(folderName) {
 
   if (recentBooks.length === 0) {
     disableBtns(['recentsBtn'], true);
-    // disableBtn('recentsBtn', true);
     toggleOverlay(true); // hide overlay
   } else {
     openOverlay('recent'); // Re-render the list
@@ -543,7 +545,7 @@ function loadTrack(index) {
   currentTrack = index;
   const track = tracks[currentTrack];
   audio.src = track.file;
-  trackTitle.textContent = track.title.slice(0, -4); // Remove '.mp3' from title name
+  trkTitleBtn.textContent = track.title.slice(0, -4); // Remove '.mp3' from title name
   audio.load();
   playPauseBtn.textContent = "play";
 }
