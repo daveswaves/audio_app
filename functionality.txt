@@ -7,10 +7,13 @@ selectBookRoot() calls:
 If lastBook exists (local storage) enable #bmkBtn button.
 
 TODO:
-*) Clip length of title name.
-*) Hide timeInf div when app first starts and no audio book has been selected yet.
-*) Add progress bar to visualise percentage of chapter/book played.
-*) Fix refresh so that existing book cover image does not get replaced by "Press Books to select an audio book." image.
+*) Add debug code to mock null return dirHandle
+✓ *) Clip length of title name.
+✓ *) Hide timeInf div when app first starts and no audio book has been selected yet.
+✓ *) Add progress bar to visualise percentage of chapter/book played.
+✓ *) Fix refresh so that existing book cover image does not get replaced by "Press Books to select an audio book." image.
+
+* * * * * * * * * * * * * * * * * * * * * * * * *
 
 const booksBtn    = document.getElementById("booksBtn");
 const refreshBtn  = document.getElementById("refreshBtn");
@@ -36,6 +39,9 @@ bmkViewBtn.addEventListener("click", () => {
 });
 trkTitleBtn.addEventListener("click", () => {
   openChaptersOverlay();
+});
+coverImage.addEventListener("click", () => {
+  togglePlay();
 });
 
 * * * * * * * * * * * * * * * * * * * * * * * * *

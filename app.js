@@ -9,14 +9,16 @@ const recentsBtn   = document.getElementById("recentsBtn");
 const bmkBtn       = document.getElementById("bmkBtn");
 const bmkViewBtn   = document.getElementById("bmkViewBtn");
 const trkTitleBtn  = document.getElementById("trkTitleBtn");
+// const coverBtn     = document.getElementById("cover");
 const playPauseBtn = document.getElementById("playPauseBtn");
 
-const audio = document.getElementById("audio");
-const currentTimeDisplay = document.getElementById("currentTime");
-const coverImage = document.getElementById("cover");
-const chapterList = document.getElementById("chapterList");
-const totalTimeDisplay = document.getElementById("totalTime");
+const audio                = document.getElementById("audio");
+const currentTimeDisplay   = document.getElementById("currentTime");
+const coverImage           = document.getElementById("cover"); // also linked to an event click
+const chapterList          = document.getElementById("chapterList");
+const totalTimeDisplay     = document.getElementById("totalTime");
 const remainingTimeDisplay = document.getElementById("remainingTime");
+
 let recentBooks = [];
 let bookmarksByBook = {};
 let bookHandles = {};
@@ -25,6 +27,10 @@ let dirHandle = {};
 const DB_NAME = "audiobook-app";
 const DB_VERSION = 1;
 const STORE_NAME = "handles";
+
+// Debug
+// Set getStoredDirectoryHandle() to return null
+// const dirHandleReturnNull = true;
 
 loadRecentBooks();
 loadBookmarks();
@@ -40,10 +46,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   dirHandle = await getStoredDirectoryHandle();
   if (!dirHandle) {
     disableBtns(['booksBtn','recentsBtn','bmkBtn','bmkViewBtn'], true);
-    // ['booksBtn','recentsBtn','bmkBtn','bmkViewBtn'].forEach(btnID => {
-    //   disableBtn(btnID, true);
-    //   document.getElementById(btnID).disabled = true;
-    // });
     return
   };
 
@@ -102,6 +104,9 @@ bmkViewBtn.addEventListener("click", () => {
 trkTitleBtn.addEventListener("click", () => {
   openChaptersOverlay();
 });
+coverImage.addEventListener("click", () => {
+  togglePlay();
+});
 
 audio.addEventListener("loadedmetadata", () => {
   remainingTimeDisplay.textContent = hoursMinsSecs(audio.duration);
@@ -131,6 +136,9 @@ audio.addEventListener("timeupdate", () => {
   if (!isNaN(remaining)) {
     currentTimeDisplay.textContent = hoursMinsSecs(currentRounded);
     remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
+
+    updateProgressBar(currentRounded + remaining, currentRounded)
+    // console.log(currentRounded, currentRounded + remaining);
   }
 });
 
@@ -151,6 +159,7 @@ async function saveDirectoryHandle(handle) {
 }
 
 async function getStoredDirectoryHandle() {
+  // if (typeof dirHandleReturnNull === 'undefined' || dirHandleReturnNull) return null;
   const db = await openDB();
   const tx = db.transaction(STORE_NAME, "readonly");
   const request = tx.objectStore(STORE_NAME).get("bookRoot");
@@ -182,7 +191,9 @@ async function readBooksFromDirectory(dirHandle) {
         // Enable button
         disableBtns(['booksBtn'], false);
         // Update default image
-        coverImage.src = 'default2.png';
+        if ('default1.png' == coverImage.src) {
+          coverImage.src = 'default2.png';
+        }
       }
     }
 
@@ -201,10 +212,6 @@ async function loadBook(folderName) {
     const file = await entry.getFile();
     files.push(file);
   }
-
-  // console.log('Files:', files);
-
-  // console.log(folderHandle.name);
 
   if (bookmarksByBook[folderHandle.name]) {
     disableBtns(['bmkViewBtn'], false);
@@ -231,7 +238,8 @@ async function loadBook(folderName) {
     file: URL.createObjectURL(file)
   }));
 
-  document.getElementById("timeInf").classList.remove("hidden");
+  document.getElementById("timeInf").style.display = "flex";
+  // document.getElementById("timeInf").classList.remove("hidden");
   document.getElementById("transCon").classList.remove("hidden");
 
   // Calculate total duration
@@ -255,7 +263,6 @@ async function loadBook(folderName) {
   }
 
   document.title = folderName;
-  // loadTrack(0);
 
   // Restore playback position
   const positionData = JSON.parse(localStorage.getItem("positions") || "{}");
@@ -282,6 +289,13 @@ async function selectBookRoot() {
   } catch (err) {
     console.error("Directory access cancelled or failed", err);
   }
+}
+
+function updateProgressBar(totalTime, currentTime) {
+  if (totalTime <= 0) return 0;
+  let tmp = (currentTime / totalTime) * 100;
+  const progress = Math.min(Math.max(tmp, 0), 100);
+  document.getElementById("progress_bar").style.width = `${progress}%`;
 }
 
 function disableBtns(arrIDs, trueFalse) {
@@ -532,22 +546,29 @@ function loadRecentBooks() {
   if (stored) recentBooks = JSON.parse(stored);
 }
 
-// function toggleBookListRecent(forceHide = null) {
-  // if (forceHide !== null) {
-  //   bookListRecent.classList.toggle("hidden", forceHide);
-  //   toggleOverlay(true);
-  // } else {
-  //   bookListRecent.classList.toggle("hidden");
-  // }
-// }
-
 function loadTrack(index) {
   currentTrack = index;
   const track = tracks[currentTrack];
   audio.src = track.file;
-  trkTitleBtn.textContent = track.title.slice(0, -4); // Remove '.mp3' from title name
+  trkTitleBtn.textContent = fmtTrackTitle(track.title);
+  // trkTitleBtn.textContent = track.title.slice(0, -4); // Remove '.mp3' from title name
   audio.load();
   playPauseBtn.textContent = "play";
+}
+
+function fmtTrackTitle(title) {
+  // Remove '.mp3' from title name
+  title = title.slice(0, -4);
+  // Set to fixed length
+  let maxLength = 46;
+  if (title.length == maxLength) {
+    title = title.slice(0, maxLength - title.length);
+  }
+  else if (title.length > maxLength) {
+    title = title.slice(0, maxLength - title.length - 3);
+    title = title+'***';
+  }
+  return title;
 }
 
 function togglePlay() {

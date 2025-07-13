@@ -13,19 +13,19 @@
 <body>
   <div class="max_w_sm mx_auto p_2 space">
     <div style="display: flex; justify-content: space-between;" class="px_1">
-      <button id="booksBtn" onclick="openOverlay('book')" class="nav navActive">Books</button>
+      <button id="booksBtn" class="nav navActive">Books</button>
 
-      <button id="refreshBtn" onclick="selectBookRoot()" class="nav navActive">Refresh</button>
+      <button id="refreshBtn" class="nav navActive">Refresh</button>
       
       <button id="recentsBtn" onclick="openOverlay('recent')" class="nav navActive">Recent</button>
       
-      <button id="bmkBtn" onclick="addBookmark()" style="width: 12vw;" class="nav navActive">
+      <button id="bmkBtn" style="width: 12vw;" class="nav navActive">
         <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="36" height="36">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
       </button>
 
-      <button id="bmkViewBtn" onclick="openBookmarksOverlay()" class="nav navActive">
+      <button id="bmkViewBtn" class="nav navActive">
         <svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24" width="20" height="20">
           <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
         </svg>
@@ -33,7 +33,7 @@
       </button>
     </div>
 
-    <img onclick="togglePlay()" id="cover" src="default1.png" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
+    <img id="cover" src="default1.png" alt="Cover" class="w_full rounded_2xl mb_4 hidden">
     
     <audio id="audio" preload="metadata"></audio>
 
@@ -42,9 +42,23 @@
       <button id="trkTitleBtn" style="font-size: 1rem;" class="link"></button>
     </div>
 
-    <div id="timeInf" style="font-size: 1rem;" class="txt_rack hidden">
-      <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
+    <div id="timeInf" style="font-size: 1rem; display: flex; flex-direction: column;" class="txt_rack">
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <span id="currentTime">00:36</span> | 
+        remaining: <span id="remainingTime">-11:59</span> | 
+        total: <span id="bookTotalTime">4:51:17</span>
+      </div>
+      <div id="progress_container" style="width: 80vw; background-color: #aaa; border-radius: 2px; margin-top: 5px;">
+        <div id="progress_bar" style="width: 0; height: 1.5vh; background-color: green; border-radius: 2px;"></div>
+      </div>
     </div>
+
+    <!-- <div id="timeInf" style="font-size: 1rem; display: none;" class="txt_rack">
+      <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
+      <div id="progress_container" style="width: 100%; background-color: #eee; border-radius: 5px;">
+        <div id="progress_bar" style="width: 0%; height: 20px; background-color: green; border-radius: 5px;"></div>
+      </div>
+    </div> -->
 
     <!-- Overlay View -->
     <div id="overlay" class="hidden">
@@ -73,7 +87,7 @@
         <button onclick="skipTime(5)" class="sq_btn">+5s</button>
         <button onclick="skipTime(10)" class="sq_btn">+10s</button>
         <button onclick="skipTime(60)" class="sq_btn">+1m</button>
-        <button onclick="prevTrack()" class="sq_btn">&gt;</button>
+        <button onclick="nextTrack()" class="sq_btn">&gt;</button>
       </div>
     </div>
   </div>
