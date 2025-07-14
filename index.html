@@ -42,23 +42,17 @@
       <button id="trkTitleBtn" style="font-size: 1rem;" class="link"></button>
     </div>
 
-    <div id="timeInf" style="font-size: 1rem; display: flex; flex-direction: column;" class="txt_rack">
+    <div id="timeInf" style="font-size: 1rem; display: none;" class="txt_rack">
+    <!-- <div id="timeInf" style="font-size: 1rem; display: flex; flex-direction: column;" class="txt_rack"> -->
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <span id="currentTime">00:36</span> | 
-        remaining: <span id="remainingTime">-11:59</span> | 
-        total: <span id="bookTotalTime">4:51:17</span>
+        <span id="currentTime">00:00</span> | 
+        remaining: <span id="remainingTime">00:00</span> | 
+        total: <span id="bookTotalTime">00:00</span>
       </div>
       <div id="progress_container" style="width: 80vw; background-color: #aaa; border-radius: 2px; margin-top: 5px;">
         <div id="progress_bar" style="width: 0; height: 1.5vh; background-color: green; border-radius: 2px;"></div>
       </div>
     </div>
-
-    <!-- <div id="timeInf" style="font-size: 1rem; display: none;" class="txt_rack">
-      <span id="currentTime">0:00</span>&nbsp;| remaining:&nbsp;<span id="remainingTime">0:00</span>&nbsp;| total:&nbsp;<span id="bookTotalTime">--:--</span>
-      <div id="progress_container" style="width: 100%; background-color: #eee; border-radius: 5px;">
-        <div id="progress_bar" style="width: 0%; height: 20px; background-color: green; border-radius: 5px;"></div>
-      </div>
-    </div> -->
 
     <!-- Overlay View -->
     <div id="overlay" class="hidden">

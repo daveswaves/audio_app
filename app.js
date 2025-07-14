@@ -9,7 +9,6 @@ const recentsBtn   = document.getElementById("recentsBtn");
 const bmkBtn       = document.getElementById("bmkBtn");
 const bmkViewBtn   = document.getElementById("bmkViewBtn");
 const trkTitleBtn  = document.getElementById("trkTitleBtn");
-// const coverBtn     = document.getElementById("cover");
 const playPauseBtn = document.getElementById("playPauseBtn");
 
 const audio                = document.getElementById("audio");
@@ -43,6 +42,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     navigator.storage.persist();
   }
 
+  // DEBUG
+  // localStorage.clear();
+  // indexedDB.deleteDatabase("audiobook-app");
+
   dirHandle = await getStoredDirectoryHandle();
   if (!dirHandle) {
     disableBtns(['booksBtn','recentsBtn','bmkBtn','bmkViewBtn'], true);
@@ -60,12 +63,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     const lastBook = localStorage.getItem("lastBook");
     if (lastBook && bookHandles[lastBook]) {
-      // console.log('permission: ', permission);//DEBUG
-      // console.log('loadBook: ', lastBook);//DEBUG
       // toggleBookList(true); // loads last book on start
       toggleOverlay(true);
       loadBook(lastBook);
-      // loadBookmarks();
 
       if (Object.keys(bookHandles).length === 0) {
         disableBtns(['booksBtn'], true);
@@ -75,7 +75,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // console.log(lastBook);
     if (!bookmarksByBook || !bookmarksByBook[lastBook]) {
       disableBtns(['bmkViewBtn'], true);
     }
@@ -138,7 +137,6 @@ audio.addEventListener("timeupdate", () => {
     remainingTimeDisplay.textContent =  `-${hoursMinsSecs(remaining)}`;
 
     updateProgressBar(currentRounded + remaining, currentRounded)
-    // console.log(currentRounded, currentRounded + remaining);
   }
 });
 
@@ -191,7 +189,7 @@ async function readBooksFromDirectory(dirHandle) {
         // Enable button
         disableBtns(['booksBtn'], false);
         // Update default image
-        if ('default1.png' == coverImage.src) {
+        if ('default1.png' == coverImage.src.slice(-12)) {
           coverImage.src = 'default2.png';
         }
       }
@@ -238,8 +236,12 @@ async function loadBook(folderName) {
     file: URL.createObjectURL(file)
   }));
 
-  document.getElementById("timeInf").style.display = "flex";
-  // document.getElementById("timeInf").classList.remove("hidden");
+  Object.assign(document.getElementById("timeInf").style, {
+    fontSize: "1rem",
+    display: "flex",
+    flexDirection: "column"
+  });
+
   document.getElementById("transCon").classList.remove("hidden");
 
   // Calculate total duration
@@ -270,10 +272,20 @@ async function loadBook(folderName) {
 
   if (savedPos) {
     loadTrack(savedPos.trackIndex);
-    audio.addEventListener("loadedmetadata", function restoreTime() {
+    const restoreTime = () => {
       audio.currentTime = savedPos.time || 0;
       audio.removeEventListener("loadedmetadata", restoreTime);
-    });
+      toggleOverlay(true);
+    };
+    audio.addEventListener("loadedmetadata", restoreTime);
+  }
+  else {
+    loadTrack(0);
+    const hide = () => {
+      audio.removeEventListener("loadedmetadata", hide);
+      toggleOverlay(true);
+    };
+    audio.addEventListener("loadedmetadata", hide);
   }
 
   // Persist last opened book
@@ -329,10 +341,6 @@ function openDB() {
     };
   });
 }
-
-// function refreshBooks() {
-//   selectBookRoot();
-// }
 
 function setupServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -437,10 +445,10 @@ async function openOverlay(view) {
       return `
         <li style="display: flex; align-items: center; padding-bottom: .5rem; gap: 0.5rem;">
           <img id="cover${i}" class="covers" src="" alt="Cover">
-          <div style="flex-grow: 1; list-style-type: none;" class="book_title" onclick="loadBook('${book}'); ${selectFnc}">${book}</div>
+          <div style="flex-grow: 1; list-style-type: none;" class="book_title" onclick="(async () => { await loadBook('${book}'); ${selectFnc} })()">${book}</div>
           ${rmvBtn}
         </li>`
-    }).join("");
+      }).join("");
 
     // Required to render book cover thumbs
     let rootHandle = await getStoredDirectoryHandle();
@@ -526,8 +534,6 @@ function removeRecentBook(folderName) {
 function removeBookmark(bookName, index) {
   if (!bookmarksByBook[bookName]) return;
 
-  // console.log(bookmarksByBook);
-
   bookmarksByBook[bookName].splice(index, 1);
   if (bookmarksByBook[bookName].length === 0) {
     delete bookmarksByBook[bookName]; // clean up empty list
@@ -550,10 +556,15 @@ function loadTrack(index) {
   currentTrack = index;
   const track = tracks[currentTrack];
   audio.src = track.file;
-  trkTitleBtn.textContent = fmtTrackTitle(track.title);
-  // trkTitleBtn.textContent = track.title.slice(0, -4); // Remove '.mp3' from title name
   audio.load();
   playPauseBtn.textContent = "play";
+
+  // Wait for metadata before updating UI
+  const onMeta = () => {
+    audio.removeEventListener("loadedmetadata", onMeta);
+    trkTitleBtn.textContent = fmtTrackTitle(track.title); // <-- update here
+  };
+  audio.addEventListener("loadedmetadata", onMeta);
 }
 
 function fmtTrackTitle(title) {
