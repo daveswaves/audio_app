@@ -55,8 +55,10 @@ body {
 }
 
 #cover {
+	max-width: 86vw;
 	max-height: 36vh;
 	width: auto;
+	height: auto;
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
